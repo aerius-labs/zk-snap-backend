@@ -1,6 +1,0 @@
-{
-  "type": "mongodb",
-  "url": "mongodb+srv://dev:9lXKppBG3GXk9TuU@zksnapdatabase.vquczha.mongodb.net/?retryWrites=true&w=majority",
-  "entities": ["src/**/**.entity{.ts,.js}"],
-  "synchronize": true
-}
