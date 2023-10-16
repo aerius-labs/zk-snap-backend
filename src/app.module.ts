@@ -11,6 +11,8 @@ import { join } from 'path';
 import { DaoModule } from './modules/dao.module';
 import { DaoMiddleware } from './middlewares/dao.middleware';
 
+import {ProposalModule} from './modules/proposal.module';
+import {ProposalMiddleware} from './middlewares/proposal.middleware'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,6 +26,7 @@ import { DaoMiddleware } from './middlewares/dao.middleware';
       synchronize: true,
     }),
     DaoModule,
+    ProposalModule,
   ],
   controllers: [],
   providers: [],
@@ -32,6 +35,10 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(DaoMiddleware).forRoutes({
       path: 'dao',
+      method: RequestMethod.POST,
+    });
+    consumer.apply(ProposalMiddleware).forRoutes({
+      path: 'proposal',
       method: RequestMethod.POST,
     });
   }
