@@ -38,8 +38,7 @@ import {
     @Column('simple-array')
     voting_options: string[];
   
-    @OneToOne(() => EncryptionKeyPair, keyPair => keyPair.proposal, { cascade: true, eager: true })
-    @JoinColumn()
+    @Column(() => EncryptionKeyPair)
     encryption_key_pair: EncryptionKeyPair;
   
     @Column({ type: 'enum', enum: ['NOT_STARTED', 'ON_GOING', 'FINISHED'], default: 'NOT_STARTED' })
