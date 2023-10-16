@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
 import { Dao } from '../entities/dao.entity';
+import { NewDaoDto } from 'src/dtos/dao.dto';
 
 @Controller('dao')
 export class DaoController {
   constructor(private readonly daoService: DaoService) {}
 
   @Post()
-  create(@Body() createDaoDto: Omit<Dao, 'id'>) {
+  async create(@Body() createDaoDto: NewDaoDto) {
     return this.daoService.create(createDaoDto);
   }
 

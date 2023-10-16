@@ -1,11 +1,15 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { join } from 'path';
 
 import { DaoModule } from './modules/dao.module';
+import { DaoMiddleware } from './middlewares/dao.middleware';
 
 @Module({
   imports: [
@@ -16,12 +20,19 @@ import { DaoModule } from './modules/dao.module';
     TypeOrmModule.forRoot({
       type: 'mongodb',
       url: process.env.MONGODB_URL,
-      entities: ['src/**/**.entity{.ts,.js}'],
+      entities: [join(__dirname, '**', '**.entity.{ts,js}')],
       synchronize: true,
     }),
     DaoModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(DaoMiddleware).forRoutes({
+      path: 'dao',
+      method: RequestMethod.POST,
+    });
+  }
+}

@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, ObjectId } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+
 import { Dao } from '../entities/dao.entity';
+import { constants } from 'src/constants';
+import { NewDaoDto } from 'src/dtos/dao.dto';
 
 @Injectable()
 export class DaoService {
@@ -10,9 +14,17 @@ export class DaoService {
     private daoRepository: Repository<Dao>,
   ) {}
 
-  create(data: Omit<Dao, 'id'>): Promise<Dao> {
+  async create(data: NewDaoDto): Promise<Dao> {
+    console.log('reached dao service create');
+    console.log('data: ', data);
     const dao = this.daoRepository.create(data);
-    return this.daoRepository.save(dao);
+    try {
+      console.log('saved', dao);
+      return await this.daoRepository.save(dao);
+    } catch (error) {
+      console.log('error', error);
+      throw new BadRequestException('Failed to create Dao');
+    }
   }
 
   findAll(): Promise<Dao[]> {

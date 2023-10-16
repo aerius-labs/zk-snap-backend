@@ -1,10 +1,18 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  PrimaryColumn,
+  ObjectId,
+} from 'typeorm';
 
 @Entity()
 export class Dao {
-  @PrimaryColumn()
-  id: string = uuidv4();
+  @ObjectIdColumn()
+  _id: ObjectId;
+
+  @Column()
+  id: string;
 
   @Column()
   name: string;
@@ -12,8 +20,8 @@ export class Dao {
   @Column()
   description: string;
 
-  @Column({ nullable: true, default: 'sample_img.png' })
-  logo?: string;
+  @Column()
+  logo: string;
 
   @Column()
   membersRoot: string;
