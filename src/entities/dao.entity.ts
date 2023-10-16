@@ -1,10 +1,4 @@
-import {
-  Entity,
-  Column,
-  ObjectIdColumn,
-  PrimaryColumn,
-  ObjectId,
-} from 'typeorm';
+import { Entity, Column, ObjectIdColumn, ObjectId } from 'typeorm';
 
 @Entity()
 export class Dao {

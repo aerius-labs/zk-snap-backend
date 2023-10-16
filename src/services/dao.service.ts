@@ -1,15 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Repository,
-  FindOneOptions,
-  ObjectId,
-  FindOptionsWhere,
-} from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
+import { Repository, FindOneOptions, FindOptionsWhere } from 'typeorm';
 
 import { Dao } from '../entities/dao.entity';
-import { constants } from 'src/constants';
 import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
 
 @Injectable()
