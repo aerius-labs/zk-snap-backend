@@ -37,17 +37,24 @@ export class ProposalService {
         // Assuming dao_id is a column in the Proposal entity
         const proposal = await this.proposalRepository.findOne({ where: { dao_id } });
         if (!proposal) {
-        throw new NotFoundException(`Proposal with proposal_id ${dao_id} not found`);
+        throw new NotFoundException(`Proposal with dao_id ${dao_id} not found`);
         }
         return proposal;
     }
 
     async update(id: string, data: Partial<Proposal>): Promise<void> {
-        await this.findOne(id); // This is to ensure the entity exists and to throw an exception if not
+        const proposal = await this.findOne(id);
+        if (!proposal) {
+            throw new NotFoundException(`Proposal with proposal_id ${id} not found`)
+        }
         await this.proposalRepository.update(id, data);
     }
 
     async remove(id: string): Promise<void> {
+        const proposal = await this.findOne(id);
+        if (!proposal) {
+            throw new NotFoundException(`Proposal with proposal_id ${id} not found`)
+        }
         await this.proposalRepository.delete(id);
     }
 }
