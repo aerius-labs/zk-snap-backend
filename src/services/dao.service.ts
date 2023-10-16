@@ -22,27 +22,43 @@ export class DaoService {
   }
 
   findAll(): Promise<Dao[]> {
-    return this.daoRepository.find();
+    try {
+      return this.daoRepository.find();
+    } catch (error) {
+      throw new BadRequestException('Failed to find Daos');
+    }
   }
 
   findOne(id: string): Promise<Dao> {
     const options: FindOneOptions<Dao> = {
       where: { id },
     };
-    return this.daoRepository.findOne(options);
+    try {
+      return this.daoRepository.findOne(options);
+    } catch (error) {
+      throw new BadRequestException('Failed to find Dao');
+    }
   }
 
   async update(id: string, data: UpdateDaoDto): Promise<void> {
     const options: FindOptionsWhere<Dao> = {
       id,
     };
-    await this.daoRepository.update(options, data);
+    try {
+      await this.daoRepository.update(options, data);
+    } catch (error) {
+      throw new BadRequestException('Failed to update Dao');
+    }
   }
 
   async remove(id: string): Promise<void> {
     const options: FindOptionsWhere<Dao> = {
       id,
     };
-    await this.daoRepository.delete(options);
+    try {
+      await this.daoRepository.delete(options);
+    } catch (error) {
+      throw new BadRequestException('Failed to delete Dao');
+    }
   }
 }
