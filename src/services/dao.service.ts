@@ -1,11 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOneOptions, ObjectId } from 'typeorm';
+import {
+  Repository,
+  FindOneOptions,
+  ObjectId,
+  FindOptionsWhere,
+} from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Dao } from '../entities/dao.entity';
 import { constants } from 'src/constants';
-import { NewDaoDto } from 'src/dtos/dao.dto';
+import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
 
 @Injectable()
 export class DaoService {
@@ -34,8 +39,11 @@ export class DaoService {
     return this.daoRepository.findOne(options);
   }
 
-  async update(id: string, data: Partial<Dao>): Promise<void> {
-    await this.daoRepository.update(id, data);
+  async update(id: string, data: UpdateDaoDto): Promise<void> {
+    const options: FindOptionsWhere<Dao> = {
+      id,
+    };
+    await this.daoRepository.update(options, data);
   }
 
   async remove(id: string): Promise<void> {

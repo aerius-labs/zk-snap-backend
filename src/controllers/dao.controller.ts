@@ -8,8 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
-import { Dao } from '../entities/dao.entity';
-import { NewDaoDto } from 'src/dtos/dao.dto';
+import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
 
 @Controller('dao')
 export class DaoController {
@@ -31,7 +30,7 @@ export class DaoController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDaoDto: Partial<Dao>) {
+  update(@Param('id') id: string, @Body() updateDaoDto: UpdateDaoDto) {
     return this.daoService.update(id, updateDaoDto);
   }
 
