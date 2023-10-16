@@ -15,14 +15,10 @@ export class DaoService {
   ) {}
 
   async create(data: NewDaoDto): Promise<Dao> {
-    console.log('reached dao service create');
-    console.log('data: ', data);
     const dao = this.daoRepository.create(data);
     try {
-      console.log('saved', dao);
       return await this.daoRepository.save(dao);
     } catch (error) {
-      console.log('error', error);
       throw new BadRequestException('Failed to create Dao');
     }
   }
