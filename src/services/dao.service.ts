@@ -47,6 +47,9 @@ export class DaoService {
   }
 
   async remove(id: string): Promise<void> {
-    await this.daoRepository.delete(id);
+    const options: FindOptionsWhere<Dao> = {
+      id,
+    };
+    await this.daoRepository.delete(options);
   }
 }
