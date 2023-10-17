@@ -3,7 +3,7 @@ import { FindOneOptions, FindOptionsWhere, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import {Proposal} from '../entities/proposal.entity'
-import {ProposalDto} from 'src/dtos/proposal.dto'
+import {NewProposalDto, UpdateProposalDto} from 'src/dtos/proposal.dto'
 import { promises } from "dns";
 
 @Injectable()
@@ -13,7 +13,7 @@ export class ProposalService {
         private proposalRepository: Repository<Proposal>,
     ) {}
 
-    async create(data: ProposalDto): Promise<Proposal> {
+    async create(data: NewProposalDto): Promise<Proposal> {
         const proposal = this.proposalRepository.create(data);
         try {
             return await this.proposalRepository.save(proposal);
@@ -46,8 +46,9 @@ export class ProposalService {
         return proposal;
     }
 
-    async update(id: string, data: Partial<Proposal>): Promise<void> {
+    async update(id: string, data: UpdateProposalDto): Promise<void> {
         // TODO :- check if this ID exist or not
+        console.log(data)
         const options: FindOptionsWhere<Proposal> = {
             id,
           };

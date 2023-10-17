@@ -1,4 +1,4 @@
-export interface ProposalDto {
+export interface NewProposalDto {
     id?: string;
     creator: string;
     title: string;
@@ -7,6 +7,12 @@ export interface ProposalDto {
     start_time: Date;
     end_time: Date;
     voting_options: string[];
-    status: 'NOT_STARTED' | 'ON_GOING' | 'FINISHED';
-    result: number[];
+}
+
+export interface UpdateProposalDto {
+    title: string;
+    description: string;
+    start_time: Date;
+    end_time: Date;
+    voting_options: string[];
 }
