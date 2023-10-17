@@ -1,6 +1,7 @@
 export interface ProposalDto {
     id?: string;
     creator: string;
+    title: string;
     description: string;
     dao_id: string;
     start_time: Date;
