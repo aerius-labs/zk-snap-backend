@@ -38,7 +38,6 @@ export class ProposalService {
     }
 
     async findByDaolId(dao_id: string): Promise<Proposal> {
-        // Assuming dao_id is a column in the Proposal entity
         const proposal = await this.proposalRepository.findOne({ where: { dao_id } });
         if (!proposal) {
         throw new NotFoundException(`Proposal with dao_id ${dao_id} not found`);

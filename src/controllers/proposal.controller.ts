@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Param, Patch, Delete, Body } from '@nestjs/common';
-import { ProposalService } from '../services/proposal.service'; // Ensure correct path
-import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto'; // Adjust to your DTO
-import { Proposal } from '../entities/proposal.entity'; // Adjust to your Entity
+import { ProposalService } from '../services/proposal.service';
+import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
+
 
 @Controller('proposal')
 export class ProposalController {

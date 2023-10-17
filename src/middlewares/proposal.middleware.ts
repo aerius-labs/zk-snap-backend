@@ -16,11 +16,11 @@ import {
         this.sanitiseProposalId(req.body);
         this.sanitiseProposalTitle(req.body);
         this.sanitiseProposalDescription(req.body);
-        // Add other sanitation methods for POST if needed
+        //TODO - Add other sanitation methods for POST if needed
       } else if (req.method === 'PATCH') {
         this.sanitiseProposalTitle(req.body);
         this.sanitiseProposalDescription(req.body);
-        // Add other sanitation methods for PATCH if needed
+        //TOTO - Add other sanitation methods for PATCH if needed
       }
       next();
     }
@@ -46,7 +46,5 @@ import {
         );
       }
     }
-  
-    // Add other sanitation methods for remaining Proposal attributes as needed.
   }
   
