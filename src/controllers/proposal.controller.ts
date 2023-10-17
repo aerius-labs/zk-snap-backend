@@ -22,7 +22,6 @@ export class ProposalController {
     return this.proposalService.findOne(id);
   }
 
-  // Method to fetch by proposal_id (if proposal_id is different from primary id)
   @Get('by-dao-id/:dao_id')
   findByProposalId(@Param('dao_id') dao_id: string) {
     return this.proposalService.findByDaolId(dao_id);

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { FindOneOptions, Repository } from "typeorm";
+import { FindOneOptions, FindOptionsWhere, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import {Proposal} from '../entities/proposal.entity'
@@ -23,7 +23,11 @@ export class ProposalService {
     }
 
     findAll(): Promise<Proposal []> {
-        return this.proposalRepository.find();
+        try {
+            return this.proposalRepository.find();
+        } catch (error) {
+            throw new BadRequestException('Failed to find Daos');
+        }
     }
 
     findOne(id: string): Promise<Proposal> {
@@ -43,18 +47,26 @@ export class ProposalService {
     }
 
     async update(id: string, data: Partial<Proposal>): Promise<void> {
-        const proposal = await this.findOne(id);
-        if (!proposal) {
-            throw new NotFoundException(`Proposal with proposal_id ${id} not found`)
-        }
-        await this.proposalRepository.update(id, data);
+        // TODO :- check if this ID exist or not
+        const options: FindOptionsWhere<Proposal> = {
+            id,
+          };
+          try {
+            await this.proposalRepository.update(options, data);
+          } catch (error) {
+            throw new BadRequestException('Failed to update Proposal');
+          }
     }
 
     async remove(id: string): Promise<void> {
-        const proposal = await this.findOne(id);
-        if (!proposal) {
-            throw new NotFoundException(`Proposal with proposal_id ${id} not found`)
-        }
-        await this.proposalRepository.delete(id);
+        // TODO :- check if this ID exist or not
+        const options: FindOptionsWhere<Proposal> = {
+            id,
+          };
+          try {
+            await this.proposalRepository.delete(options);
+          } catch (error) {
+            throw new BadRequestException('Failed to delete Proposal');
+          }
     }
 }

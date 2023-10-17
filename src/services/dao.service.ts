@@ -41,6 +41,7 @@ export class DaoService {
   }
 
   async update(id: string, data: UpdateDaoDto): Promise<void> {
+    // TODO :- check if this ID exist or not
     const options: FindOptionsWhere<Dao> = {
       id,
     };
@@ -52,6 +53,7 @@ export class DaoService {
   }
 
   async remove(id: string): Promise<void> {
+    // TODO :- check if this ID exist or not
     const options: FindOptionsWhere<Dao> = {
       id,
     };
