@@ -18,5 +18,5 @@ export class Dao {
   logo: string;
 
   @Column()
-  membersRoot: string;
+  members: string[];
 }

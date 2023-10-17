@@ -17,12 +17,12 @@ export class DaoMiddleware implements NestMiddleware {
       this.sanitiseDaoName(req.body);
       this.sanitiseDaoDescription(req.body);
       this.sanitiseDaoLogo(req.body);
-      this.sanitiseDaoMembersRoot(req.body);
+      this.sanitiseDaoMembers(req.body);
     } else if (req.method === 'PATCH') {
       this.sanitiseDaoName(req.body);
       this.sanitiseDaoDescription(req.body);
       this.sanitiseDaoLogo(req.body);
-      this.sanitiseDaoMembersRoot(req.body);
+      this.sanitiseDaoMembers(req.body);
     }
     next();
   }
@@ -53,12 +53,26 @@ export class DaoMiddleware implements NestMiddleware {
     obj.logo = obj.logo || constants.DEFAULT_DAO_IMAGE;
   }
 
-  private sanitiseDaoMembersRoot(obj: any): void {
-    if (!obj.membersRoot || !isKeccakHash(obj.membersRoot)) {
+  private isHexString(value: string): boolean {
+    const hexRegex = /^[0-9a-fA-F]+$/;
+    return hexRegex.test(value);
+  }
+
+  private sanitiseDaoMembers(obj: any): void {
+    if (!obj.members || !Array.isArray(obj.members)) {
       throw new HttpException(
-        'Members root should not be empty and should be a valid keccak256 hash',
+        'Members should be a non-empty array',
         HttpStatus.BAD_REQUEST,
       );
+    }
+  
+    for (const member of obj.members) {
+      if (!this.isHexString(member)) {
+        throw new HttpException(
+          'Every member should be a hexadecimal string',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
   }
 }
