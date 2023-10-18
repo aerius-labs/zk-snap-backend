@@ -3,12 +3,12 @@ export interface NewDaoDto {
   name: string;
   description: string;
   logo?: string;
-  membersRoot: string;
+  members: string[];
 }
 
 export interface UpdateDaoDto {
   name: string;
   description: string;
   logo: string;
-  membersRoot: string;
+  members: string[];
 }

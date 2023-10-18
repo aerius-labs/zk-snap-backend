@@ -4,17 +4,25 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import {Proposal} from '../entities/proposal.entity'
 import {NewProposalDto, UpdateProposalDto} from 'src/dtos/proposal.dto'
-import { promises } from "dns";
+import { DaoService } from "./dao.service";
 
 @Injectable()
 export class ProposalService {
     constructor(
         @InjectRepository(Proposal)
         private proposalRepository: Repository<Proposal>,
+        private daoService: DaoService
     ) {}
 
     async create(data: NewProposalDto): Promise<Proposal> {
         const proposal = this.proposalRepository.create(data);
+        const dao = await this.daoService.findOne(data.dao_id);
+        if (!dao) {
+            throw new BadRequestException(`Dao with ID ${data.dao_id} does not exist`);
+        }
+        if (!dao.members.includes(data.creator)) { 
+            throw new BadRequestException(`Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`);
+        }
         try {
             return await this.proposalRepository.save(proposal);
         } catch (error) {
