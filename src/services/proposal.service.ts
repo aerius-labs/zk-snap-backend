@@ -20,7 +20,7 @@ export class ProposalService {
         if (!dao) {
             throw new BadRequestException(`Dao with ID ${data.dao_id} does not exist`);
         }
-        if (!dao.members.includes(data.creator)) { // Assuming creator is a property in NewProposalDto
+        if (!dao.members.includes(data.creator)) { 
             throw new BadRequestException(`Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`);
         }
         try {
