@@ -5,11 +5,12 @@ import { ProposalService } from '../services/proposal.service';
 import { Proposal } from '../entities/proposal.entity';
 import { DaoService } from 'src/services/dao.service';
 import { Dao } from 'src/entities/dao.entity';
+import { KeysService } from 'src/services/key-gen.sevice';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Proposal]), TypeOrmModule.forFeature([Dao])],
     controllers: [ProposalController],
-    providers: [ProposalService, DaoService],
+    providers: [ProposalService, DaoService, KeysService],
     exports: [ProposalService],
   })
   export class ProposalModule {}
