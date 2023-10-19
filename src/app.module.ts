@@ -11,8 +11,8 @@ import { join } from 'path';
 import { DaoModule } from './modules/dao.module';
 import { DaoMiddleware } from './middlewares/dao.middleware';
 
-import {ProposalModule} from './modules/proposal.module';
-import {ProposalMiddleware} from './middlewares/proposal.middleware'
+import { ProposalModule } from './modules/proposal.module';
+import { ProposalMiddleware } from './middlewares/proposal.middleware';
 @Module({
   imports: [
     ConfigModule.forRoot({
