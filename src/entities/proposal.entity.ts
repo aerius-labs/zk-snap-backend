@@ -37,9 +37,13 @@ import {
   
     @Column('simple-array')
     voting_options: string[];
-  
+    
+    // TODO - Write this in more efficent way
     @Column(() => EncryptionKeyPair)
-    encryption_key_pair: EncryptionKeyPair;
+    encryption_key_pair: EncryptionKeyPair = {
+      public_key: '',
+      private_key: ''
+    };
   
     @Column({ type: 'enum', enum: ['NOT_STARTED', 'ON_GOING', 'FINISHED'], default: 'NOT_STARTED' })
     status: 'NOT_STARTED' | 'ON_GOING' | 'FINISHED';
