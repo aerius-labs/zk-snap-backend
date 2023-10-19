@@ -55,7 +55,16 @@ import {
       if (obj.start_time instanceof Date && obj.end_time instanceof Date) {
           const currentMillis = Date.now();
           const startTimeMillis = new Date(obj.start_time).getTime();
+          console.log(startTimeMillis)
           const endTimeMillis = new Date(obj.end_time).getTime();
+          console.log(endTimeMillis)
+
+          if (startTimeMillis > endTimeMillis) {
+            throw new HttpException(
+              'end_time should be greater than the start_time',
+              HttpStatus.BAD_REQUEST,
+            );
+          }
 
           if (startTimeMillis <= currentMillis || endTimeMillis <= currentMillis) {
               throw new HttpException(
