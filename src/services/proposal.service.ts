@@ -7,6 +7,7 @@ import {NewProposalDto, UpdateProposalDto} from 'src/dtos/proposal.dto'
 import { DaoService } from "./dao.service";
 import { KeysService } from "./key-gen.sevice";
 import { testnet } from "src/utils/drand-client";
+import { stringifyBigInt } from "src/utils/big-int-string";
 
 @Injectable()
 export class ProposalService {
@@ -16,9 +17,9 @@ export class ProposalService {
         private daoService: DaoService,
         private keysService: KeysService,
     ) {}
-
+    
+    // TODO - No two proposals should have eqaul title
     async create(data: NewProposalDto): Promise<Proposal> {
-
         const dao = await this.daoService.findOne(data.dao_id);
         if (!dao) {
             throw new BadRequestException(`Dao with ID ${data.dao_id} does not exist`);
@@ -26,25 +27,19 @@ export class ProposalService {
         if (!dao.members.includes(data.creator)) { 
             throw new BadRequestException(`Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`);
         }
-        
         const keys = await this.keysService.generatePallierKeys();
-        const decryptTime = data.end_time.getMilliseconds()
-
-        // Convert BigInt values to strings
-        const objWithStrings = JSON.parse(JSON.stringify(keys.privateKey, (key, value) => typeof value === 'bigint' ? value.toString() : value));
 
         // Serialize the object to a string
-        const privateString = JSON.stringify(objWithStrings);
+        const privateString = stringifyBigInt(keys.privateKey)
 
         // encrypt the private key
         const client = testnet();
-        const encrypted = await this.keysService.encrypt(client, privateString, decryptTime);
+        const encrypted = await this.keysService.encrypt(client, privateString, data.end_time.getTime());
 
         let proposal = this.proposalRepository.create(data);
-
-        proposal.encryption_key_pair.public_key = JSON.stringify(keys.publicKey)
+        proposal.encryption_key_pair.public_key = stringifyBigInt(keys.publicKey)
         proposal.encryption_key_pair.private_key = encrypted
-
+ 
         try {
             return await this.proposalRepository.save(proposal);
         } catch (error) {
