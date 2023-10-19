@@ -55,9 +55,8 @@ import {
       if (obj.start_time instanceof Date && obj.end_time instanceof Date) {
           const currentMillis = Date.now();
           const startTimeMillis = new Date(obj.start_time).getTime();
-          console.log(startTimeMillis)
           const endTimeMillis = new Date(obj.end_time).getTime();
-          console.log(endTimeMillis)
+
 
           if (startTimeMillis > endTimeMillis) {
             throw new HttpException(

@@ -6,7 +6,8 @@ import {HttpChainClient, roundAt, timelockDecrypt, timelockEncrypt} from "tlock-
 export class KeysService {
 
     async generatePallierKeys() {
-        return await paillierBigint.generateRandomKeys(63);
+        const bit_length = parseInt(process.env.BIT_LENGHT, 10)
+        return await paillierBigint.generateRandomKeys(bit_length);
     }
 
     async encrypt(client: HttpChainClient, plaintext: string, decryptionTime: number) {
