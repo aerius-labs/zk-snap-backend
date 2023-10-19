@@ -17,12 +17,14 @@ export class DaoMiddleware implements NestMiddleware {
       this.sanitiseDaoName(req.body);
       this.sanitiseDaoDescription(req.body);
       this.sanitiseDaoLogo(req.body);
-      this.sanitiseDaoMembers(req.body);
+      // TODO - sanitation for account address check
+      // this.sanitiseDaoMembers(req.body);
     } else if (req.method === 'PATCH') {
       this.sanitiseDaoName(req.body);
       this.sanitiseDaoDescription(req.body);
       this.sanitiseDaoLogo(req.body);
-      this.sanitiseDaoMembers(req.body);
+      // TODO - sanitation for account address check
+      // this.sanitiseDaoMembers(req.body);
     }
     next();
   }
