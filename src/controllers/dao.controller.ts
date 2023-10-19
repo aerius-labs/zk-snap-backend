@@ -39,7 +39,13 @@ export class DaoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.daoService.findOne(id);
+    const dao = this.daoService.findOne(id);
+    const proposals = this.daoService.findProposalByDaoId(id);
+
+    return {
+      dao: dao,
+      proposals: proposals
+    }
   }
 
   @Patch(':id')
