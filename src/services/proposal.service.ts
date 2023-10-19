@@ -55,12 +55,12 @@ export class ProposalService {
         return this.proposalRepository.findOne(options);
     }
 
-    async findByDaolId(dao_id: string): Promise<Proposal> {
-        const proposal = await this.proposalRepository.findOne({ where: { dao_id } });
-        if (!proposal) {
+    async findByDaolId(dao_id: string): Promise<Proposal []> {
+        const proposals = await this.proposalRepository.find({ where: { dao_id } });
+        if (!proposals) {
         throw new NotFoundException(`Proposal with dao_id ${dao_id} not found`);
         }
-        return proposal;
+        return proposals;
     }
 
     async update(id: string, data: UpdateProposalDto): Promise<void> {
