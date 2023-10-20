@@ -10,6 +10,7 @@ import {
 import { DaoService } from '../services/dao.service';
 import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
 import { Dao } from 'src/entities/dao.entity';
+import { extractDaoDetails, extractProposalDetails } from 'src/utils/filter';
 
 @Controller('dao')
 export class DaoController {
@@ -41,11 +42,7 @@ export class DaoController {
   async findOne(@Param('id') id: string) {
     const dao = await this.daoService.findOne(id);
     const proposals = await this.daoService.findProposalsByDaoId(id);
-
-    return {
-      dao: dao,
-      proposals: proposals,
-    };
+    return extractDaoDetails(dao, proposals);
   }
 
   @Patch(':id')
