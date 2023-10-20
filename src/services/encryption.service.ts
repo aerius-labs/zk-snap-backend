@@ -33,7 +33,7 @@ export class EncryptionService {
   }
 
   private async generatePallierKeys() {
-    const bit_length = parseInt(process.env.BIT_LENGHT, 10);
+    const bit_length = parseInt(process.env.BIT_LENGTH, 10);
     return await paillierBigint.generateRandomKeys(bit_length);
   }
 
