@@ -16,24 +16,22 @@ export class ProposalService {
   constructor(
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
-    private daoService: DaoService,
     private encryptionService: EncryptionService,
   ) {}
 
   // TODO - No two proposals should have eqaul title
   async create(data: NewProposalDto): Promise<Proposal> {
-    const dao = await this.daoService.findOne(data.dao_id);
-    if (!dao) {
-      throw new BadRequestException(
-        `Dao with ID ${data.dao_id} does not exist`,
-      );
-    }
-    if (!dao.members.includes(data.creator)) {
-      throw new BadRequestException(
-        `Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`,
-      );
-    }
-
+    // const dao = await this.daoService.findOne(data.dao_id);
+    // if (!dao) {
+    //   throw new BadRequestException(
+    //     `Dao with ID ${data.dao_id} does not exist`,
+    //   );
+    // }
+    // if (!dao.members.includes(data.creator)) {
+    //   throw new BadRequestException(
+    //     `Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`,
+    //   );
+    // }
     const enc = await this.encryptionService.generateEncryptedKeys(
       data.end_time,
     );
@@ -64,14 +62,14 @@ export class ProposalService {
     return this.proposalRepository.findOne(options);
   }
 
-  async findByDaolId(dao_id: string): Promise<Proposal> {
-    const proposal = await this.proposalRepository.findOne({
+  async findByDaolId(dao_id: string): Promise<Proposal[]> {
+    const proposals = await this.proposalRepository.find({
       where: { dao_id },
     });
-    if (!proposal) {
+    if (!proposals) {
       throw new NotFoundException(`Proposal with dao_id ${dao_id} not found`);
     }
-    return proposal;
+    return proposals;
   }
 
   async update(id: string, data: UpdateProposalDto): Promise<void> {

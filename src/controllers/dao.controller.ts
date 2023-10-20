@@ -38,14 +38,14 @@ export class DaoController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    const dao = this.daoService.findOne(id);
-    const proposals = this.daoService.findProposalByDaoId(id);
+  async findOne(@Param('id') id: string) {
+    const dao = await this.daoService.findOne(id);
+    const proposals = await this.daoService.findProposalsByDaoId(id);
 
     return {
       dao: dao,
-      proposals: proposals
-    }
+      proposals: proposals,
+    };
   }
 
   @Patch(':id')

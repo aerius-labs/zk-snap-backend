@@ -4,12 +4,15 @@ import { Repository, FindOneOptions, FindOptionsWhere } from 'typeorm';
 
 import { Dao } from '../entities/dao.entity';
 import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
+import { Proposal } from 'src/entities/proposal.entity';
+import { ProposalService } from './proposal.service';
 
 @Injectable()
 export class DaoService {
   constructor(
     @InjectRepository(Dao)
     private daoRepository: Repository<Dao>,
+    private proposalService: ProposalService,
   ) {}
 
   async create(data: NewDaoDto): Promise<Dao> {
@@ -38,6 +41,10 @@ export class DaoService {
     } catch (error) {
       throw new BadRequestException('Failed to find Dao');
     }
+  }
+
+  async findProposalsByDaoId(id: string): Promise<Proposal[]> {
+    return await this.proposalService.findByDaolId(id);
   }
 
   async update(id: string, data: UpdateDaoDto): Promise<void> {
