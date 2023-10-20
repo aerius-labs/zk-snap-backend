@@ -6,6 +6,7 @@ import {
   Patch,
   Delete,
   Body,
+  NotFoundException,
 } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
 import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
@@ -33,8 +34,28 @@ export class ProposalController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.proposalService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const proposal = await this.proposalService.findOne(id);
+
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+    const dao = await this.daoService.findOne(proposal.dao_id);
+
+    if (!dao) {
+      throw new NotFoundException('DAO not found for the given proposal');
+    }
+
+    return {
+      creatorID: proposal.creator,
+      proposalID: proposal.id,
+      title: proposal.title,
+      end_time: proposal.end_time,
+      start_time: proposal.start_time,
+      description: proposal.description,
+      daoName: dao.name,
+      membersRoot: dao.membersRoot,
+    };
   }
 
   @Get('by-dao-id/:dao_id')
@@ -57,7 +78,7 @@ export class ProposalController {
 
   @OnEvent('proposal.created')
   async generateAggregatorBaseProof(proposalId: string) {
-    const proposal = await this.findOne(proposalId);
+    const proposal = await this.proposalService.findOne(proposalId);
 
     try {
       const aggBaseProof =

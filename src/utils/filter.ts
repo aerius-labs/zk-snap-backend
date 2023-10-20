@@ -8,7 +8,7 @@ export function extractProposalDetails(proposals: Proposal[]) {
       title: proposal.title,
       description: proposal.description,
       end_time: proposal.end_time,
-      id: proposal.id
+      id: proposal.id,
     };
   });
 }
