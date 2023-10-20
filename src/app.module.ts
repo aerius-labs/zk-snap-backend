@@ -7,7 +7,6 @@ import {
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { DaoModule } from './modules/dao.module';
 import { DaoMiddleware } from './middlewares/dao.middleware';
@@ -26,7 +25,6 @@ import { ProposalMiddleware } from './middlewares/proposal.middleware';
       entities: [join(__dirname, '**', '**.entity.{ts,js}')],
       synchronize: true,
     }),
-    EventEmitterModule.forRoot(),
     DaoModule,
     ProposalModule,
   ],
