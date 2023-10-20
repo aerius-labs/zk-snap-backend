@@ -1,12 +1,13 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PublicKey } from 'paillier-bigint';
+import { lastValueFrom } from 'rxjs';
 import { Dao } from 'src/entities/dao.entity';
 import { Proposal } from 'src/entities/proposal.entity';
 import { ProposalCreatedEvent } from 'src/events/proposal.event';
 import { getRandomNBitNumber } from 'src/utils';
-import { parseBigInt } from 'src/utils/big-int-string';
 import { FindOneOptions, Repository } from 'typeorm';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class ProposalCreatedListener {
   constructor(
     @InjectRepository(Dao)
     private readonly daoRepository: Repository<Dao>,
+    private readonly httpService: HttpService,
   ) {}
 
   @OnEvent('proposal.created')
@@ -23,7 +25,20 @@ export class ProposalCreatedListener {
       const aggBaseProof = await this.generateAggregatorBaseProofWitness(
         event.proposal,
       );
-      // TODO - Send generated Agg base proof witness to the Aggregator.
+
+      const response = await lastValueFrom(
+        this.httpService.post(
+          `<AGGREGATOR_ENDPOINT>`,
+          { witness: aggBaseProof },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
+
+      return response.data;
     } catch (error) {
       console.error('Error handling ProposalCreatedEvent:', error);
     }
