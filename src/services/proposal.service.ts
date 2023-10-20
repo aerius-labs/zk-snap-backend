@@ -17,7 +17,6 @@ export class ProposalService {
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
     private encryptionService: EncryptionService,
-    private eventEmitter: EventEmitter2,
   ) {}
 
   // TODO - No two proposals should have eqaul title

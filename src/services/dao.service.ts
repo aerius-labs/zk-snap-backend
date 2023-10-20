@@ -1,18 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOneOptions, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOneOptions, FindOptionsWhere, In } from 'typeorm';
 
 import { Dao } from '../entities/dao.entity';
 import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
-import { Proposal } from 'src/entities/proposal.entity';
-import { ProposalService } from './proposal.service';
 
 @Injectable()
 export class DaoService {
   constructor(
     @InjectRepository(Dao)
     private daoRepository: Repository<Dao>,
-    private proposalService: ProposalService,
   ) {}
 
   async create(data: NewDaoDto): Promise<Dao> {
@@ -32,19 +29,23 @@ export class DaoService {
     }
   }
 
-  findOne(id: string): Promise<Dao> {
+  findDaosByIds(id: string[]): Promise<Dao[]> {
+    try {
+      return this.daoRepository.findBy({ id: In(id) });
+    } catch (error) {
+      throw new BadRequestException('failed to fetch DAOs');
+    }
+  }
+
+  async findOne(id: string): Promise<Dao> {
     const options: FindOneOptions<Dao> = {
       where: { id },
     };
     try {
-      return this.daoRepository.findOne(options);
+      return await this.daoRepository.findOne(options);
     } catch (error) {
       throw new BadRequestException('Failed to find Dao');
     }
-  }
-
-  async findProposalsByDaoId(id: string): Promise<Proposal[]> {
-    return await this.proposalService.findByDaolId(id);
   }
 
   async update(id: string, data: UpdateDaoDto): Promise<void> {

@@ -66,7 +66,7 @@ export class DaoController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const dao = await this.daoService.findOne(id);
-    const proposals = await this.daoService.findProposalsByDaoId(id);
+    const proposals = await this.proposalService.findByDaolId(id);
     return extractDaoDetails(dao, proposals);
   }
 
