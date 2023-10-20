@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Proposal } from '../entities/proposal.entity';
 import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
 import { DaoService } from './dao.service';
-import { EncryptionService } from './encryption.sevice';
+import { EncryptionService } from './encryption.service';
 
 @Injectable()
 export class ProposalService {
