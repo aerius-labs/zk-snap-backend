@@ -13,6 +13,7 @@ import { DaoMiddleware } from './middlewares/dao.middleware';
 
 import { ProposalModule } from './modules/proposal.module';
 import { ProposalMiddleware } from './middlewares/proposal.middleware';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +26,7 @@ import { ProposalMiddleware } from './middlewares/proposal.middleware';
       entities: [join(__dirname, '**', '**.entity.{ts,js}')],
       synchronize: true,
     }),
+    EventEmitterModule.forRoot(),
     DaoModule,
     ProposalModule,
   ],

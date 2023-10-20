@@ -9,10 +9,18 @@ import {
 } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
 import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
+import { OnEvent } from '@nestjs/event-emitter';
+import { Proposal } from 'src/entities/proposal.entity';
+import { DaoService } from 'src/services/dao.service';
+import { PublicKey } from 'paillier-bigint';
+import { getRandomNBitNumber } from 'src/utils';
 
 @Controller('proposal')
 export class ProposalController {
-  constructor(private readonly proposalService: ProposalService) {}
+  constructor(
+    private readonly proposalService: ProposalService,
+    private readonly daoService: DaoService,
+  ) {}
 
   @Post()
   async create(@Body() createProposalDto: NewProposalDto) {
@@ -45,5 +53,73 @@ export class ProposalController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.proposalService.remove(id);
+  }
+
+  @OnEvent('proposal.created')
+  async generateAggregatorBaseProof(proposalId: string) {
+    const proposal = await this.findOne(proposalId);
+
+    try {
+      const aggBaseProof =
+        await this.generateAggregatorBaseProofWitness(proposal);
+
+      // TODO - uncomment when aggregator endpoint is ready
+      // const response = await lastValueFrom(
+      //   this.httpService.post(
+      //     `<AGGREGATOR_ENDPOINT>`,
+      //     { witness: aggBaseProof },
+      //     {
+      //       headers: {
+      //         'Content-Type': 'application/json',
+      //       },
+      //     },
+      //   ),
+      // );
+    } catch (error) {
+      console.error('Error handling ProposalCreatedEvent:', error);
+    }
+  }
+
+  // TODO - Needs to be trustless.
+  private async generateAggregatorBaseProofWitness(
+    proposal: Proposal,
+  ): Promise<string> {
+    try {
+      const dao = await this.daoService.findOne(proposal.dao_id);
+      if (!dao) throw new Error('DAO not found');
+
+      const encryptionPublicKeyJson = JSON.parse(
+        proposal.encryption_key_pair.public_key,
+      );
+      const encryptionPublicKey = new PublicKey(
+        BigInt(encryptionPublicKeyJson.n.slice(0, -1)),
+        BigInt(encryptionPublicKeyJson.g.slice(0, -1)),
+      );
+
+      const bitLength = parseInt(process.env.BIT_LENGTH);
+      if (!bitLength)
+        throw new Error('BIT_LENGTH environment variable is not defined');
+      const rEncryption = getRandomNBitNumber(bitLength);
+
+      const initVoteCount = [];
+      for (let i = 0; i < 2; i++) {
+        const enc = encryptionPublicKey.encrypt(1n, rEncryption);
+        initVoteCount.push(enc.toString());
+      }
+
+      const witness = {
+        encryption_public_key: proposal.encryption_key_pair.public_key,
+        proposal_id: proposal.id,
+        members_root: dao.membersRoot,
+        nonce: '0',
+        old_vote_count: initVoteCount,
+        new_vote_count: initVoteCount,
+      };
+
+      return JSON.stringify(witness);
+    } catch (error) {
+      console.error('Error generating Aggregator Base Proof Witness:', error);
+      throw error;
+    }
   }
 }
