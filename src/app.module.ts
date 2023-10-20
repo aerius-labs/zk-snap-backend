@@ -43,5 +43,9 @@ export class AppModule implements NestModule {
       path: 'proposal',
       method: RequestMethod.POST,
     });
+    consumer.apply(ProposalMiddleware).forRoutes({
+      path: 'dao/proposal',
+      method: RequestMethod.POST,
+    });
   }
 }

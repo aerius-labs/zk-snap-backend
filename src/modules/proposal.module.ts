@@ -8,11 +8,9 @@ import { Dao } from 'src/entities/dao.entity';
 import { EncryptionService } from 'src/services/encryption.service';
 import { ProposalCreatedListener } from 'src/listeners/proposal.listener';
 
+
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Proposal]),
-    TypeOrmModule.forFeature([Dao]),
-  ],
+  imports: [TypeOrmModule.forFeature([Proposal])],
   controllers: [ProposalController],
   providers: [
     ProposalService,
