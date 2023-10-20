@@ -1,3 +1,5 @@
+import { Proposal } from 'src/entities/proposal.entity';
+
 export class ProposalCreatedEvent {
-  proposalId: string;
+  proposal: Proposal;
 }

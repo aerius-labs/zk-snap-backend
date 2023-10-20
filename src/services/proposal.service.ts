@@ -49,7 +49,7 @@ export class ProposalService {
       const createdProposal = await this.proposalRepository.save(proposal);
 
       const proposalCreatedEvent = new ProposalCreatedEvent();
-      proposalCreatedEvent.proposalId = createdProposal.id;
+      proposalCreatedEvent.proposal = createdProposal;
       this.eventEmitter.emit('proposal.created', proposalCreatedEvent);
 
       return createdProposal;
