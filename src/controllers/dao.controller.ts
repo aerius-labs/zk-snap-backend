@@ -6,15 +6,24 @@ import {
   Patch,
   Param,
   Delete,
+  Inject,
+  BadRequestException,
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
 import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
 import { Dao } from 'src/entities/dao.entity';
-import { extractDaoDetails, extractProposalDetails } from 'src/utils/filter';
+import { extractDaoDetails } from 'src/utils/filter';
+import { ProposalController } from './proposal.controller';
+import { NewProposalDto } from 'src/dtos/proposal.dto';
+import { ProposalService } from 'src/services/proposal.service';
+import { EncryptionService } from 'src/services/encryption.sevice';
 
 @Controller('dao')
 export class DaoController {
-  constructor(private readonly daoService: DaoService) {}
+  constructor(
+    private readonly daoService: DaoService,
+    private readonly proposalService: ProposalService,
+  ) {}
 
   @Post()
   async create(@Body() createDaoDto: NewDaoDto) {
@@ -31,6 +40,22 @@ export class DaoController {
       membersCount: Array.isArray(dao.members) ? dao.members.length : 0,
     }));
     return transformedDaos;
+  }
+
+  @Post('proposal')
+  async createProposal(@Body() newProposal: NewProposalDto) {
+    const dao = await this.daoService.findOne(newProposal.dao_id);
+    if (!dao) {
+      throw new BadRequestException(
+        `Dao with ID ${newProposal.dao_id} does not exist`,
+      );
+    }
+    if (!dao.members.includes(newProposal.creator)) {
+      throw new BadRequestException(
+        `Creator ${newProposal.creator} is not a member of Dao with ID ${newProposal.dao_id}`,
+      );
+    }
+    return await this.proposalService.create(newProposal);
   }
 
   @Get()
