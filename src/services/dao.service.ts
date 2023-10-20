@@ -37,12 +37,12 @@ export class DaoService {
     }
   }
 
-  findOne(id: string): Promise<Dao> {
+  async findOne(id: string): Promise<Dao> {
     const options: FindOneOptions<Dao> = {
       where: { id },
     };
     try {
-      return this.daoRepository.findOne(options);
+      return await this.daoRepository.findOne(options);
     } catch (error) {
       throw new BadRequestException('Failed to find Dao');
     }
