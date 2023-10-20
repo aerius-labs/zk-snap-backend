@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 import { Proposal } from '../entities/proposal.entity';
 import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
-import { DaoService } from './dao.service';
-import { EncryptionService } from './encryption.sevice';
+import { EncryptionService } from './encryption.service';
 
 @Injectable()
 export class ProposalService {
@@ -41,7 +41,11 @@ export class ProposalService {
     proposal.encryption_key_pair.private_key = enc.pvt_key;
 
     try {
-      return await this.proposalRepository.save(proposal);
+      const createdProposal = await this.proposalRepository.save(proposal);
+
+      this.eventEmitter.emit('proposal.created', createdProposal.id);
+
+      return createdProposal;
     } catch (error) {
       throw new BadRequestException('Failed to create proposal');
     }
