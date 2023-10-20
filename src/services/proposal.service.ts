@@ -5,13 +5,11 @@ import {
 } from '@nestjs/common';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 import { Proposal } from '../entities/proposal.entity';
 import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
-import { DaoService } from './dao.service';
 import { EncryptionService } from './encryption.service';
-import { ProposalCreatedEvent } from 'src/events/proposal.event';
 
 @Injectable()
 export class ProposalService {
@@ -46,9 +44,7 @@ export class ProposalService {
     try {
       const createdProposal = await this.proposalRepository.save(proposal);
 
-      const proposalCreatedEvent = new ProposalCreatedEvent();
-      proposalCreatedEvent.proposal = createdProposal;
-      this.eventEmitter.emit('proposal.created', proposalCreatedEvent);
+      this.eventEmitter.emit('proposal.created', createdProposal.id);
 
       return createdProposal;
     } catch (error) {
