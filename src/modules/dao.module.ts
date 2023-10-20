@@ -5,7 +5,7 @@ import { DaoService } from '../services/dao.service';
 import { Dao } from '../entities/dao.entity';
 import { Proposal } from 'src/entities/proposal.entity';
 import { ProposalService } from 'src/services/proposal.service';
-import { EncryptionService } from 'src/services/encryption.service';
+import { EncryptionService } from 'src/services/encryption.sevice';
 import { ProposalController } from 'src/controllers/proposal.controller';
 
 @Module({

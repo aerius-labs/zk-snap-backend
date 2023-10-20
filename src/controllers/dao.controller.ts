@@ -16,7 +16,7 @@ import { extractDaoDetails } from 'src/utils/filter';
 import { ProposalController } from './proposal.controller';
 import { NewProposalDto } from 'src/dtos/proposal.dto';
 import { ProposalService } from 'src/services/proposal.service';
-import { EncryptionService } from 'src/services/encryption.service';
+import { EncryptionService } from 'src/services/encryption.sevice';
 
 @Controller('dao')
 export class DaoController {

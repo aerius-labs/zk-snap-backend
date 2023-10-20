@@ -13,7 +13,6 @@ import { DaoMiddleware } from './middlewares/dao.middleware';
 
 import { ProposalModule } from './modules/proposal.module';
 import { ProposalMiddleware } from './middlewares/proposal.middleware';
-import { HttpModule } from '@nestjs/axios';
 @Module({
   imports: [
     ConfigModule.forRoot({
