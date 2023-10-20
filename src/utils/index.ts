@@ -22,3 +22,11 @@ export const isKeccakHash = (hash: string) => {
 
   return true;
 };
+
+export const getRandomNBitNumber = (bits: number) => {
+  let randomBigInt = BigInt(0);
+  for (let i = 0; i < bits; i++) {
+    randomBigInt |= BigInt(Math.floor(Math.random() * 2)) << BigInt(i);
+  }
+  return randomBigInt;
+};
