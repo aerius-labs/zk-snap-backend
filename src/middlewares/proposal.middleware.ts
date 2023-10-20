@@ -15,11 +15,13 @@ export class ProposalMiddleware implements NestMiddleware {
       this.sanitiseProposalTitle(req.body);
       this.sanitiseProposalDescription(req.body);
       this.sanitiseProposalTime(req.body);
+      this.sanitiseRequestBody(req.body);
       //TODO - Add other sanitation methods for POST if needed
     } else if (req.method === 'PATCH') {
       this.sanitiseProposalTitle(req.body);
       this.sanitiseProposalDescription(req.body);
       this.sanitiseProposalTime(req.body);
+      this.sanitiseRequestBody(req.body);
       //TOTO - Add other sanitation methods for PATCH if needed
     }
     next();
@@ -27,6 +29,13 @@ export class ProposalMiddleware implements NestMiddleware {
 
   private sanitiseProposalId(obj: any): void {
     obj.id = uuidv4();
+  }
+
+  // TODO - this is for demo remove this after that
+  private sanitiseRequestBody(obj: any): void {
+    obj.voting_options = ['Yes', 'No'];
+    obj.status = 'NOT_STARTED';
+    obj.result = [0, 0];
   }
 
   private sanitiseProposalTitle(obj: any): void {
