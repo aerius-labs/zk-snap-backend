@@ -27,8 +27,8 @@ export class DaoController {
       id: dao.id,
       name: dao.name,
       logo: dao.logo,
-      membersCount: Array.isArray(dao.members) ? dao.members.length : 0
-    })); 
+      membersCount: Array.isArray(dao.members) ? dao.members.length : 0,
+    }));
     return transformedDaos;
   }
 
