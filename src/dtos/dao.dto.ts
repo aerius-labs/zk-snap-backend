@@ -3,6 +3,7 @@ export interface NewDaoDto {
   name: string;
   description: string;
   logo?: string;
+  membersRoot?: string;
   members: string[];
 }
 
