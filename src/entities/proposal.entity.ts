@@ -7,7 +7,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { EncryptionKeyPair } from './EncryptionKeyPair.entity';
+import { EncryptionKeyPair } from './encryptionKeyPair.entity';
 
 @Entity('proposals')
 export class Proposal {
