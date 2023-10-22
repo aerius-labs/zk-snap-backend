@@ -55,6 +55,7 @@ export class ProposalController {
       description: proposal.description,
       encryptionKeys: proposal.encryption_key_pair,
       daoName: dao.name,
+      daoId: dao.id,
       membersRoot: dao.membersRoot,
     };
   }
