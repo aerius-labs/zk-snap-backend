@@ -13,7 +13,7 @@ class MyMerkleWitness extends MerkleWitness(8) {}
  * @param leaves - An array of leaves (data) to build the Merkle Tree.
  * @returns The Merkle Root as a hexadecimal string.
  */
-export function createMerkleRoot(leaves: string[]): string {
+export function createMerkleRoot(leaves: string[]): MerkleTree {
   // Convert leaves to Buffer and hash them
   const merkleTree = new MerkleTree(8);
   // Set the leaves in the Merkle Tree
@@ -21,7 +21,7 @@ export function createMerkleRoot(leaves: string[]): string {
     const pubKey = PublicKey.fromBase58(leaf).x;
     merkleTree.setLeaf(BigInt(index), Poseidon.hash([pubKey]));
   });
-  return merkleTree.getRoot().toString();
+  return merkleTree;
 }
 
 /**

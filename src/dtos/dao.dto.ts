@@ -5,6 +5,7 @@ export interface NewDaoDto {
   logo?: string;
   membersRoot?: string;
   members: string[];
+  membersTree: string;
 }
 
 export interface UpdateDaoDto {

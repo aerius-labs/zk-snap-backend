@@ -22,4 +22,7 @@ export class Dao {
 
   @Column()
   members: string[];
+
+  @Column()
+  membersTree: string;
 }

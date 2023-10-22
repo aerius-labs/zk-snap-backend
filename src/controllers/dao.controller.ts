@@ -21,7 +21,7 @@ import { NewProposalDto } from 'src/dtos/proposal.dto';
 import { ProposalService } from 'src/services/proposal.service';
 import { EncryptionService } from 'src/services/encryption.service';
 import { createMerkleProof, createMerkleRoot } from 'src/utils/merkleTreeUtils';
-
+import { Field, Poseidon, PublicKey } from 'o1js';
 @Controller('dao')
 export class DaoController {
   constructor(
@@ -35,9 +35,10 @@ export class DaoController {
       throw new NotFoundException('DAO members list is empty');
     }
 
-    const membersRoot = createMerkleRoot(createDaoDto.members);
-    createDaoDto.membersRoot = membersRoot;
-
+    const membersTree = createMerkleRoot(createDaoDto.members);
+    createDaoDto.membersRoot = membersTree.getRoot().toString();
+    console.log('membersTree', membersTree)
+    createDaoDto.membersTree = JSON.stringify(membersTree)
     return this.daoService.create(createDaoDto);
   }
 
@@ -59,9 +60,19 @@ export class DaoController {
       if (memberIndex === -1) {
         throw new NotFoundException('Member not found in DAO');
       }
-
-      const merkleProof = JSON.stringify(createMerkleProof(memberIndex));
-      return res.status(HttpStatus.OK).json(merkleProof);
+      const merkleProof = createMerkleProof(memberIndex);
+      try{
+        merkleProof
+      .calculateRoot(Poseidon.hash([PublicKey.fromBase58(memberPublicKey).x]))
+      .assertEquals(Field(dao.membersRoot));
+      
+      }catch(error){
+        console.log(error);
+      }
+      console.log('Member Index',memberIndex, memberPublicKey)
+      const merkleProofStr = JSON.stringify(merkleProof.toJSON());
+      console.log('MerkleProofStr',merkleProofStr)
+      return res.status(HttpStatus.OK).json(merkleProofStr);
     } catch (error) {
       return res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
     }
