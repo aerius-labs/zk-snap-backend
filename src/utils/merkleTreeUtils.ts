@@ -1,11 +1,12 @@
-import { MerkleTree } from 'merkletreejs';
-import * as sha256 from 'sha256';
+import { MerkleTree, Poseidon, PublicKey, MerkleWitness } from 'o1js';
 
 export interface MerkleProof {
   merkleRoot: string;
-  proof: string[];
+  proof: MyMerkleWitness;
   leaf: string;
 }
+
+class MyMerkleWitness extends MerkleWitness(8) {}
 
 /**
  * Function to create a Merkle Tree and return the root.
@@ -14,13 +15,13 @@ export interface MerkleProof {
  */
 export function createMerkleRoot(leaves: string[]): string {
   // Convert leaves to Buffer and hash them
-  const hashedLeaves = leaves.map((leaf) => Buffer.from(sha256(leaf), 'hex'));
-
-  // Create a Merkle Tree using sha256 as the hash function
-  const tree = new MerkleTree(hashedLeaves, sha256, { sortPairs: true });
-
-  // Return the Merkle Root as a hexadecimal string
-  return tree.getRoot().toString('hex');
+  const merkleTree = new MerkleTree(8);
+  // Set the leaves in the Merkle Tree
+  leaves.forEach((leaf, index) => {
+    const pubKey = PublicKey.fromBase58(leaf).x;
+    merkleTree.setLeaf(BigInt(index), Poseidon.hash([pubKey]));
+  });
+  return merkleTree.getRoot().toString();
 }
 
 /**
@@ -30,24 +31,12 @@ export function createMerkleRoot(leaves: string[]): string {
  * @returns The Merkle Proof object.
  */
 export function createMerkleProof(
-  leaves: string[],
+  //   leaves: string[],
   index: number,
-): MerkleProof {
-  // Convert leaves to Buffer and hash them
-  const hashedLeaves = leaves.map((leaf) => Buffer.from(sha256(leaf), 'hex'));
+): MyMerkleWitness {
+  const merkleTree = new MerkleTree(8);
+  const merkleWitness = merkleTree.getWitness(BigInt(index));
+  const merkleProof = new MyMerkleWitness(merkleWitness);
 
-  // Create a Merkle Tree using sha256 as the hash function
-  const tree = new MerkleTree(hashedLeaves, sha256, { sortPairs: true });
-
-  // Get the Merkle Proof for the specified leaf
-  const proof = tree.getProof(hashedLeaves[index]);
-
-  // Convert proof to a format that can be easily sent as a JSON response
-  const formattedProof = proof.map((p) => p.data.toString('hex'));
-
-  return {
-    merkleRoot: tree.getRoot().toString('hex'),
-    proof: formattedProof,
-    leaf: hashedLeaves[index].toString('hex'),
-  };
+  return merkleProof;
 }

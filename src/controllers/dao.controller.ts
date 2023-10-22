@@ -60,7 +60,7 @@ export class DaoController {
         throw new NotFoundException('Member not found in DAO');
       }
 
-      const merkleProof = createMerkleProof(dao.members, memberIndex);
+      const merkleProof = JSON.stringify(createMerkleProof(memberIndex));
       return res.status(HttpStatus.OK).json(merkleProof);
     } catch (error) {
       return res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
