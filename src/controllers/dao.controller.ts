@@ -38,8 +38,7 @@ export class DaoController {
     const membersTree = createMerkleRoot(createDaoDto.members);
     createDaoDto.membersRoot = membersTree.getRoot().toString();
     console.log('membersTree', membersTree)
-    createDaoDto.membersTree = JSON.stringify(membersTree)
-    return this.daoService.create(createDaoDto);
+    return await this.daoService.create(createDaoDto);
   }
 
   @Get(':daoId/merkle-proof/:memberPublicKey')
@@ -60,7 +59,8 @@ export class DaoController {
       if (memberIndex === -1) {
         throw new NotFoundException('Member not found in DAO');
       }
-      const merkleProof = createMerkleProof(memberIndex);
+
+      const merkleProof = createMerkleProof(dao.members, memberIndex);
       try{
         merkleProof
       .calculateRoot(Poseidon.hash([PublicKey.fromBase58(memberPublicKey).x]))

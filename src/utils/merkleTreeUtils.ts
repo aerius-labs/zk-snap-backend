@@ -31,10 +31,16 @@ export function createMerkleRoot(leaves: string[]): MerkleTree {
  * @returns The Merkle Proof object.
  */
 export function createMerkleProof(
-  //   leaves: string[],
+  members: string[],
   index: number,
 ): MyMerkleWitness {
-  const merkleTree = new MerkleTree(8);
+
+    const merkleTree = new MerkleTree(8);
+  // Set the leaves in the Merkle Tree
+  members.forEach((leaf, index) => {
+    const pubKey = PublicKey.fromBase58(leaf).x;
+    merkleTree.setLeaf(BigInt(index), Poseidon.hash([pubKey]));
+  });
   const merkleWitness = merkleTree.getWitness(BigInt(index));
   const merkleProof = new MyMerkleWitness(merkleWitness);
 
