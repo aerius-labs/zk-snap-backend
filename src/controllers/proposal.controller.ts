@@ -53,6 +53,7 @@ export class ProposalController {
       end_time: proposal.end_time,
       start_time: proposal.start_time,
       description: proposal.description,
+      encryptionKeys: proposal.encryption_key_pair,
       daoName: dao.name,
       membersRoot: dao.membersRoot,
     };
