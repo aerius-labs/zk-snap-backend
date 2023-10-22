@@ -33,6 +33,17 @@ export class ProposalController {
     return this.proposalService.findAll();
   }
 
+  @Post(':id') 
+  castVote(@Body() userProof: string) {
+    // TODO - transfer user proof to aggregator
+
+  }
+
+  @Post('base-proof/:id')
+  async storeBaseProof(@Param('id') id: string, @Body() baseProof: string) {
+    return await this.proposalService.storeBaseProof(id, baseProof)
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const proposal = await this.proposalService.findOne(id);

@@ -52,6 +52,17 @@ export class ProposalService {
     }
   }
 
+  async storeBaseProof(id: string, base_proof: string): Promise<void> {
+    const options: FindOptionsWhere<Proposal> = {
+      id,
+    };
+    try {
+      await this.proposalRepository.update(options, {base_proof});
+    } catch (error) {
+      throw new BadRequestException('Failed to update Proposal');
+    }
+  }
+
   findAll(): Promise<Proposal[]> {
     try {
       return this.proposalRepository.find();
@@ -79,7 +90,6 @@ export class ProposalService {
 
   async update(id: string, data: UpdateProposalDto): Promise<void> {
     // TODO :- check if this ID exist or not
-    console.log(data);
     const options: FindOptionsWhere<Proposal> = {
       id,
     };

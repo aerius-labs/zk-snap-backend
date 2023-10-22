@@ -45,6 +45,9 @@ export class Proposal {
     private_key: '',
   };
 
+  @Column()
+  base_proof: string;
+  
   @Column({
     type: 'enum',
     enum: ['NOT_STARTED', 'ON_GOING', 'FINISHED'],
