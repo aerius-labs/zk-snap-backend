@@ -79,6 +79,11 @@ export class ProposalController {
     return this.proposalService.remove(id);
   }
 
+  @Post('proof')
+  async storeProof(@Body() proof: any) {
+    return this.proposalService.storeProofs(proof);
+  }
+
   @OnEvent('proposal.created')
   async generateAggregatorBaseProof(proposalId: string) {
     const proposal = await this.proposalService.findOne(proposalId);

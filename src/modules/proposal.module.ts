@@ -7,13 +7,10 @@ import { EncryptionService } from 'src/services/encryption.service';
 import { DaoService } from 'src/services/dao.service';
 import { HttpModule } from '@nestjs/axios';
 import { Dao } from 'src/entities/dao.entity';
+import { ZkProof } from 'src/entities/zk-proof.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Proposal]),
-    TypeOrmModule.forFeature([Dao]),
-    HttpModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Proposal, Dao, ZkProof]), HttpModule],
   controllers: [ProposalController],
   providers: [ProposalService, EncryptionService, DaoService],
   exports: [ProposalService],
