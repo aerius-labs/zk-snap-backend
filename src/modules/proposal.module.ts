@@ -5,13 +5,14 @@ import { ProposalService } from '../services/proposal.service';
 import { Proposal } from '../entities/proposal.entity';
 import { EncryptionService } from 'src/services/encryption.service';
 import { DaoService } from 'src/services/dao.service';
-import { DaoModule } from './dao.module';
+import { HttpModule } from '@nestjs/axios';
 import { Dao } from 'src/entities/dao.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Proposal]),
     TypeOrmModule.forFeature([Dao]),
+    HttpModule,
   ],
   controllers: [ProposalController],
   providers: [ProposalService, EncryptionService, DaoService],
