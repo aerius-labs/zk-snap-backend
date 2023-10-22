@@ -15,12 +15,15 @@ import { Proposal } from 'src/entities/proposal.entity';
 import { DaoService } from 'src/services/dao.service';
 import { PublicKey } from 'paillier-bigint';
 import { getRandomNBitNumber } from 'src/utils';
+import { lastValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Controller('proposal')
 export class ProposalController {
   constructor(
     private readonly proposalService: ProposalService,
     private readonly daoService: DaoService,
+    private readonly httpService: HttpService,
   ) {}
 
   @Post()
@@ -78,6 +81,11 @@ export class ProposalController {
     return this.proposalService.remove(id);
   }
 
+  @Post('proof')
+  async storeProof(@Body() proof: any) {
+    return this.proposalService.storeProofs(proof);
+  }
+
   @OnEvent('proposal.created')
   async generateAggregatorBaseProof(proposalId: string) {
     const proposal = await this.proposalService.findOne(proposalId);
@@ -85,19 +93,21 @@ export class ProposalController {
     try {
       const aggBaseProof =
         await this.generateAggregatorBaseProofWitness(proposal);
+      console.log('Aggregator Base Proof:', aggBaseProof);
 
-      // TODO - uncomment when aggregator endpoint is ready
-      // const response = await lastValueFrom(
-      //   this.httpService.post(
-      //     `<AGGREGATOR_ENDPOINT>`,
-      //     { witness: aggBaseProof },
-      //     {
-      //       headers: {
-      //         'Content-Type': 'application/json',
-      //       },
-      //     },
-      //   ),
-      // );
+      const response = await lastValueFrom(
+        this.httpService.post(
+          `http://localhost:3001/aggregator`,
+          { type: 'base', witness: aggBaseProof },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
+
+      console.log('Aggregator Base Proof Response:', response.status);
     } catch (error) {
       console.error('Error handling ProposalCreatedEvent:', error);
     }
@@ -131,12 +141,12 @@ export class ProposalController {
       }
 
       const witness = {
-        encryption_public_key: proposal.encryption_key_pair.public_key,
-        proposal_id: proposal.id,
-        members_root: dao.membersRoot,
-        nonce: '0',
-        old_vote_count: initVoteCount,
-        new_vote_count: initVoteCount,
+        encryptionPublicKeyStr: proposal.encryption_key_pair.public_key,
+        proposalIdStr: proposal.id,
+        membersRootStr: dao.membersRoot,
+        nonceStr: '0',
+        oldVoteCountStr: initVoteCount,
+        newVoteCountStr: initVoteCount,
       };
 
       return JSON.stringify(witness);

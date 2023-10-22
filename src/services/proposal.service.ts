@@ -5,17 +5,21 @@ import {
 } from '@nestjs/common';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { v4 as uuid } from 'uuid';
 
 import { Proposal } from '../entities/proposal.entity';
 import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ZkProof } from 'src/entities/zk-proof.entity';
 
 @Injectable()
 export class ProposalService {
   constructor(
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
+    @InjectRepository(ZkProof)
+    private zkProofRepository: Repository<ZkProof>,
     private encryptionService: EncryptionService,
     private eventEmitter: EventEmitter2,
   ) {}
@@ -99,6 +103,15 @@ export class ProposalService {
       await this.proposalRepository.delete(options);
     } catch (error) {
       throw new BadRequestException('Failed to delete Proposal');
+    }
+  }
+
+  async storeProofs(proof: ZkProof) {
+    proof.id = uuid();
+    try {
+      return await this.zkProofRepository.save(proof);
+    } catch (error) {
+      throw new BadRequestException('Failed to store proof');
     }
   }
 }

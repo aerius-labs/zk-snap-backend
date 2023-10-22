@@ -5,7 +5,7 @@ type BigIntObject = {
 export function stringifyBigInt(obj: BigIntObject): string {
   return JSON.stringify(obj, (_, value) => {
     if (typeof value === 'bigint') {
-      return value.toString() + 'n';
+      return value.toString();
     }
     return value;
   });
