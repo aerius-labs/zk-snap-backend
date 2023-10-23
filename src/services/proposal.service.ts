@@ -14,6 +14,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ZkProof } from 'src/entities/zk-proof.entity';
 import { AggregatorProofInputs } from 'src/dtos/circuit.dto';
 import { Dao } from 'src/entities/dao.entity';
+import * as schedule from 'node-schedule';
+import { testnet } from 'src/utils/drand-client';
+import { parseBigInt } from 'src/utils/big-int-string';
+import { PrivateKey } from 'paillier-bigint';
 
 @Injectable()
 export class ProposalService {
@@ -52,12 +56,50 @@ export class ProposalService {
     try {
       const createdProposal = await this.proposalRepository.save(proposal);
 
+      this.scheduleEvent(createdProposal.id, createdProposal.end_time);
+      
       this.eventEmitter.emit('proposal.created', createdProposal.id);
 
       return createdProposal;
     } catch (error) {
       throw new BadRequestException('Failed to create proposal');
     }
+  }
+
+  private scheduleEvent(proposalId: string, endTime: Date): void {
+    schedule.scheduleJob(proposalId, endTime, () => {
+      this.handleEventEnd(proposalId);
+    });
+  }
+  private async handleEventEnd(proposalId: string): Promise<void> {
+    console.log(`Event ended for proposal: ${proposalId}`);
+    const proposal = await this.findOne(proposalId);
+    const encrypted_votes = proposal.zk_proof.publicInput.slice(-2);
+    const enc_pvt_key = proposal.encryption_key_pair.private_key;
+    const dec_pvt_key = await this.encryptionService.decrypt(
+      testnet(),
+      enc_pvt_key,
+    );
+    proposal.encryption_key_pair.private_key = dec_pvt_key.value;
+    await this.revealResult(dec_pvt_key.value, encrypted_votes)
+    const options: FindOptionsWhere<Proposal> = {
+      id: proposalId,
+    };
+    try {
+      await this.proposalRepository.update(options, proposal);
+    } catch (error) {
+      throw new BadRequestException('Failed to update Proposal');
+    }
+  }
+
+  private async revealResult(pvt_key: string, vote: string[]): Promise<void>{
+    const new_private_key: PrivateKey = parseBigInt(pvt_key)
+    vote.map((v) => {
+      new_private_key.decrypt(BigInt(v))
+    })
+    console.log("decrypted votes" ,vote)
+    console.log("decrypted private key",new_private_key)
+    
   }
 
   findAll(): Promise<Proposal[]> {

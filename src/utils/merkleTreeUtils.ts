@@ -34,8 +34,7 @@ export function createMerkleProof(
   members: string[],
   index: number,
 ): MyMerkleWitness {
-
-    const merkleTree = new MerkleTree(8);
+  const merkleTree = new MerkleTree(8);
   // Set the leaves in the Merkle Tree
   members.forEach((leaf, index) => {
     const pubKey = PublicKey.fromBase58(leaf).x;
