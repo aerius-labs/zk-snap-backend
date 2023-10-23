@@ -13,7 +13,6 @@ import {
 export class EncryptionService {
   async generateEncryptedKeys(end_time: Date) {
     const keys = await this.generatePallierKeys();
-    console.log("jeys" , keys)
 
     // Serialize the object to a string
     const privateString = stringifyBigInt(keys.privateKey);
