@@ -137,4 +137,20 @@ export class ProposalService {
       throw new BadRequestException('Failed to delete Proposal');
     }
   }
+
+  async storeProof(proof: any): Promise<void> {
+    // Store incoming proof as latest proof in Proposal
+    // Store latest proof for proposal in DB
+    console.log('Storing proof', proof);
+    const options: FindOptionsWhere<Proposal> = {
+      id: proof.proposalId,
+    };
+    const updatedProposal = await this.proposalRepository.update(options, {
+      zk_proof: proof.generatedProof,
+    });
+    console.log('Updated proposal', updatedProposal);
+    // Emit an event to pickup the next items
+    console.log('proof stored');
+    this.eventEmitter.emit('proof.stored');
+  }
 }
