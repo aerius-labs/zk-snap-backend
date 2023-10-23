@@ -82,7 +82,6 @@ export class ProposalService {
     );
     proposal.encryption_key_pair.private_key = dec_pvt_key.value;
     await this.revealResult(dec_pvt_key.value, encrypted_votes)
-    console.log("below")
     const options: FindOptionsWhere<Proposal> = {
       id: proposalId,
     };
