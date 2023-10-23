@@ -47,7 +47,7 @@ export class EncryptionService {
     return await timelockEncrypt(roundNumber, Buffer.from(plaintext), client);
   }
 
-  private async decrypt(client: HttpChainClient, ciphertext: string) {
+  async decrypt(client: HttpChainClient, ciphertext: string) {
     const plaintext = await timelockDecrypt(ciphertext, client);
     return {
       type: 'text',

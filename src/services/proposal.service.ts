@@ -14,6 +14,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ZkProof } from 'src/entities/zk-proof.entity';
 import { AggregatorProofInputs } from 'src/dtos/circuit.dto';
 import { Dao } from 'src/entities/dao.entity';
+import * as schedule from 'node-schedule';
+import { testnet } from 'src/utils/drand-client';
 
 @Injectable()
 export class ProposalService {
@@ -52,11 +54,37 @@ export class ProposalService {
     try {
       const createdProposal = await this.proposalRepository.save(proposal);
 
+      this.scheduleEvent(createdProposal.id, createdProposal.end_time);
+      
       this.eventEmitter.emit('proposal.created', createdProposal.id);
 
       return createdProposal;
     } catch (error) {
       throw new BadRequestException('Failed to create proposal');
+    }
+  }
+
+  private scheduleEvent(proposalId: string, endTime: Date): void {
+    schedule.scheduleJob(proposalId, endTime, () => {
+      this.handleEventEnd(proposalId);
+    });
+  }
+  private async handleEventEnd(proposalId: string): Promise<void> {
+    console.log(`Event ended for proposal: ${proposalId}`);
+    const proposal = await this.findOne(proposalId);
+    const enc_pvt_key = proposal.encryption_key_pair.private_key;
+    const dec_pvt_key = await this.encryptionService.decrypt(
+      testnet(),
+      enc_pvt_key,
+    );
+    proposal.encryption_key_pair.private_key = dec_pvt_key.value;
+    const options: FindOptionsWhere<Proposal> = {
+      id: proposalId,
+    };
+    try {
+      await this.proposalRepository.update(options, proposal);
+    } catch (error) {
+      throw new BadRequestException('Failed to update Proposal');
     }
   }
 
