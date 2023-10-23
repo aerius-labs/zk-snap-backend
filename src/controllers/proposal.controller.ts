@@ -19,6 +19,7 @@ import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ZkProof } from 'src/entities/zk-proof.entity';
 import { EncryptionService } from 'src/services/encryption.service';
+import { RabbitMQService } from 'src/services/rabbitmq.service';
 
 @Controller('proposal')
 export class ProposalController {
@@ -27,9 +28,8 @@ export class ProposalController {
     private readonly daoService: DaoService,
     private readonly httpService: HttpService,
     private readonly encryptionService: EncryptionService,
+    private readonly rabbitMQService: RabbitMQService,
   ) {}
-
-  proofs: ZkProof[] = [];
 
   @Post()
   async create(@Body() createProposalDto: NewProposalDto) {
@@ -88,7 +88,7 @@ export class ProposalController {
 
   @Post('proof')
   async storeProof(@Body() proof: any) {
-    return this.storeProofs(proof);
+    await this.proposalService.storeProof(proof);
   }
 
   @Post(':id/vote')
@@ -96,7 +96,12 @@ export class ProposalController {
     console.log('id', id);
     console.log('voteProof', voteProof);
 
-    return this.aggregateVote(id, voteProof);
+    if (this.rabbitMQService.isQueueEmpty('voteQueue')) {
+      const earlierProof = (await this.proposalService.findOne(id)).zk_proof;
+      this.aggregateVote(id, voteProof, earlierProof);
+    }
+
+    this.rabbitMQService.sendToQueue({ voteProof, proposalId: id });
   }
 
   @OnEvent('proposal.created')
@@ -124,6 +129,22 @@ export class ProposalController {
     } catch (error) {
       console.error('Error handling ProposalCreatedEvent:', error);
     }
+  }
+
+  @OnEvent('proof.stored')
+  async generateAggregatorRecursiveProofWitness() {
+    const message =
+      await this.rabbitMQService.consumeLatestMessage('voteQueue');
+    if (!message) {
+      console.log('No message in queue');
+      return;
+    }
+    const userProof = JSON.parse(message);
+    console.log('User Proof:', userProof);
+    const earlierProof = (
+      await this.proposalService.findOne(userProof.publicInput[3])
+    ).zk_proof;
+    await this.aggregateVote(userProof.publicInput[3], userProof, earlierProof);
   }
 
   // TODO - Needs to be trustless.
@@ -169,12 +190,7 @@ export class ProposalController {
     }
   }
 
-  async storeProofs(proof: ZkProof) {
-    this.proofs.push(proof);
-    console.log('Proof stored', proof);
-  }
-
-  async aggregateVote(id: string, vote: any) {
+  async aggregateVote(id: string, userProof: any, earlierProof: any) {
     const proposal = await this.proposalService.findOne(id);
     const dao = await this.daoService.findOne(proposal.dao_id);
 
@@ -184,12 +200,8 @@ export class ProposalController {
     witness.membersRootStr = dao.membersRoot;
     witness.nonceStr = '0';
     witness.oldVoteCountStr = [
-      this.proofs[this.proofs.length - 1].publicInput[
-        this.proofs[this.proofs.length - 1].publicInput.length - 2
-      ],
-      this.proofs[this.proofs.length - 1].publicInput[
-        this.proofs[this.proofs.length - 1].publicInput.length - 2
-      ],
+      earlierProof.publicInput[earlierProof.publicInput.length - 2],
+      earlierProof.publicInput[earlierProof.publicInput.length - 1],
     ];
 
     witness.newVoteCountStr = [];
@@ -197,14 +209,14 @@ export class ProposalController {
       witness.newVoteCountStr.push(
         this.encryptionService.addCipherTexts(
           proposal.encryption_key_pair.public_key,
-          vote.publicInput[vote.publicInput.length - 2 + i],
+          userProof.publicInput[userProof.publicInput.length - 2 + i],
           witness.oldVoteCountStr[i],
         ),
       );
     }
 
-    witness.selfProofStr = JSON.stringify(this.proofs[this.proofs.length - 1]);
-    witness.userProofStr = JSON.stringify(vote);
+    witness.selfProofStr = JSON.stringify(earlierProof);
+    witness.userProofStr = JSON.stringify(userProof);
 
     console.log('Witness', witness);
 

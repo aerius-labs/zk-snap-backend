@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { EncryptionKeyPair } from './encryptionKeyPair.entity';
+import { ZkProof } from './zk-proof.entity';
 
 @Entity('proposals')
 export class Proposal {
@@ -54,4 +55,7 @@ export class Proposal {
 
   @Column('simple-array')
   result: number[];
+
+  @Column(() => ZkProof)
+  zk_proof: ZkProof;
 }

@@ -8,11 +8,12 @@ import { DaoService } from 'src/services/dao.service';
 import { HttpModule } from '@nestjs/axios';
 import { Dao } from 'src/entities/dao.entity';
 import { ZkProof } from 'src/entities/zk-proof.entity';
+import { RabbitMQService } from 'src/services/rabbitmq.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Proposal, Dao, ZkProof]), HttpModule],
   controllers: [ProposalController],
-  providers: [ProposalService, EncryptionService, DaoService],
+  providers: [ProposalService, EncryptionService, DaoService, RabbitMQService],
   exports: [ProposalService],
 })
 export class ProposalModule {}

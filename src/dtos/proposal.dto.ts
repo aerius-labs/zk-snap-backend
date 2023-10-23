@@ -15,5 +15,4 @@ export interface UpdateProposalDto {
   start_time: Date;
   end_time: Date;
   voting_options: string[];
-  proof_nonce: string;
 }
