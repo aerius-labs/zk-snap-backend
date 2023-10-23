@@ -12,6 +12,7 @@ export class RabbitMQService implements OnModuleInit {
     this.connection = await amqp.connect('amqp://127.0.0.1');
     this.channel = await this.connection.createChannel();
     await this.channel.assertQueue('voteQueue');
+    console.log('RabbitMQ connected');
   }
 
   async isQueueEmpty(queueName: string): Promise<boolean> {

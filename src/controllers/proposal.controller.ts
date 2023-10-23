@@ -96,12 +96,12 @@ export class ProposalController {
     console.log('id', id);
     console.log('voteProof', voteProof);
 
-    if (this.rabbitMQService.isQueueEmpty('voteQueue')) {
-      const earlierProof = (await this.proposalService.findOne(id)).zk_proof;
-      this.aggregateVote(id, voteProof, earlierProof);
-    }
+    await this.rabbitMQService.sendToQueue({
+      voteProof,
+      proposalId: id,
+    });
 
-    this.rabbitMQService.sendToQueue({ voteProof, proposalId: id });
+    await this.generateAggregatorRecursiveProofWitness();
   }
 
   @OnEvent('proposal.created')
@@ -139,12 +139,13 @@ export class ProposalController {
       console.log('No message in queue');
       return;
     }
-    const userProof = JSON.parse(message);
-    console.log('User Proof:', userProof);
-    const earlierProof = (
-      await this.proposalService.findOne(userProof.publicInput[3])
-    ).zk_proof;
-    await this.aggregateVote(userProof.publicInput[3], userProof, earlierProof);
+    const parsed = JSON.parse(message);
+    console.log('User Proof:', parsed.voteProof);
+    console.log('Proposal ID:', parsed.proposalId);
+    const earlierProof = (await this.proposalService.findOne(parsed.proposalId))
+      .zk_proof;
+    console.log('Earlier Proof:', earlierProof);
+    await this.aggregateVote(parsed.proposalId, parsed.voteProof, earlierProof);
   }
 
   // TODO - Needs to be trustless.
@@ -207,7 +208,7 @@ export class ProposalController {
     witness.newVoteCountStr = [];
     for (let i = 0; i < 2; i++) {
       witness.newVoteCountStr.push(
-        this.encryptionService.addCipherTexts(
+        await this.encryptionService.addCipherTexts(
           proposal.encryption_key_pair.public_key,
           userProof.publicInput[userProof.publicInput.length - 2 + i],
           witness.oldVoteCountStr[i],
