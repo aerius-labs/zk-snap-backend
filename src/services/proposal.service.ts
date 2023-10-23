@@ -16,6 +16,8 @@ import { AggregatorProofInputs } from 'src/dtos/circuit.dto';
 import { Dao } from 'src/entities/dao.entity';
 import * as schedule from 'node-schedule';
 import { testnet } from 'src/utils/drand-client';
+import { parseBigInt } from 'src/utils/big-int-string';
+import { PrivateKey } from 'paillier-bigint';
 
 @Injectable()
 export class ProposalService {
@@ -72,12 +74,16 @@ export class ProposalService {
   private async handleEventEnd(proposalId: string): Promise<void> {
     console.log(`Event ended for proposal: ${proposalId}`);
     const proposal = await this.findOne(proposalId);
+    const encrypted_votes = proposal.zk_proof.publicInput.slice(-2);
     const enc_pvt_key = proposal.encryption_key_pair.private_key;
     const dec_pvt_key = await this.encryptionService.decrypt(
       testnet(),
       enc_pvt_key,
     );
     proposal.encryption_key_pair.private_key = dec_pvt_key.value;
+    console.log("above")
+    await this.revealResult(dec_pvt_key.value, encrypted_votes)
+    console.log("below")
     const options: FindOptionsWhere<Proposal> = {
       id: proposalId,
     };
@@ -86,6 +92,16 @@ export class ProposalService {
     } catch (error) {
       throw new BadRequestException('Failed to update Proposal');
     }
+  }
+
+  private async revealResult(pvt_key: string, vote: string[]): Promise<void>{
+    const new_private_key: PrivateKey = parseBigInt(pvt_key)
+    vote.map((v) => {
+      new_private_key.decrypt(BigInt(v))
+    })
+    console.log("decrypted votes" ,vote)
+    console.log("decrypted private key",new_private_key)
+    
   }
 
   findAll(): Promise<Proposal[]> {

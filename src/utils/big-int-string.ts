@@ -11,10 +11,10 @@ export function stringifyBigInt(obj: BigIntObject): string {
   });
 }
 
-export function parseBigInt(jsonString: string): BigIntObject {
+export function parseBigInt(jsonString: string): any {
   return JSON.parse(jsonString, (_, value) => {
-    if (typeof value === 'string' && value.endsWith('n')) {
-      return BigInt(value.slice(0, -1));
+    if (typeof value === 'string') {
+      return BigInt(value);
     }
     return value;
   });
