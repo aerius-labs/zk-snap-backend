@@ -54,4 +54,19 @@ export class EncryptionService {
       value: plaintext.toString(),
     };
   }
+
+  async addCipherTexts(pubKey: string, c1: string, c2: string) {
+    console.log('c1', c1);
+    console.log('c2', c2);
+    console.log('pubKey', pubKey);
+    const pubJson = JSON.parse(pubKey);
+    console.log('pubJson', pubJson);
+    const pub = new paillierBigint.PublicKey(
+      BigInt(pubJson.n),
+      BigInt(pubJson.g),
+    );
+
+    const c = pub.addition(...[BigInt(c1), BigInt(c2)]);
+    return c.toString();
+  }
 }

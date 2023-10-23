@@ -17,6 +17,8 @@ import { PublicKey } from 'paillier-bigint';
 import { getRandomNBitNumber } from 'src/utils';
 import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
+import { ZkProof } from 'src/entities/zk-proof.entity';
+import { EncryptionService } from 'src/services/encryption.service';
 
 @Controller('proposal')
 export class ProposalController {
@@ -24,7 +26,10 @@ export class ProposalController {
     private readonly proposalService: ProposalService,
     private readonly daoService: DaoService,
     private readonly httpService: HttpService,
+    private readonly encryptionService: EncryptionService,
   ) {}
+
+  proofs: ZkProof[] = [];
 
   @Post()
   async create(@Body() createProposalDto: NewProposalDto) {
@@ -83,7 +88,15 @@ export class ProposalController {
 
   @Post('proof')
   async storeProof(@Body() proof: any) {
-    return this.proposalService.storeProofs(proof);
+    return this.storeProofs(proof);
+  }
+
+  @Post(':id/vote')
+  async vote(@Param('id') id: string, @Body() voteProof: any) {
+    console.log('id', id);
+    console.log('voteProof', voteProof);
+
+    return this.aggregateVote(id, voteProof);
   }
 
   @OnEvent('proposal.created')
@@ -98,7 +111,7 @@ export class ProposalController {
       const response = await lastValueFrom(
         this.httpService.post(
           `http://localhost:3001/aggregator`,
-          { type: 'base', witness: aggBaseProof },
+          { type: 'base', witness: aggBaseProof, proposalId: proposalId },
           {
             headers: {
               'Content-Type': 'application/json',
@@ -154,5 +167,61 @@ export class ProposalController {
       console.error('Error generating Aggregator Base Proof Witness:', error);
       throw error;
     }
+  }
+
+  async storeProofs(proof: ZkProof) {
+    this.proofs.push(proof);
+    console.log('Proof stored', proof);
+  }
+
+  async aggregateVote(id: string, vote: any) {
+    const proposal = await this.proposalService.findOne(id);
+    const dao = await this.daoService.findOne(proposal.dao_id);
+
+    const witness: any = {};
+    witness.encryptionPublicKeyStr = proposal.encryption_key_pair.public_key;
+    witness.proposalIdStr = proposal.id;
+    witness.membersRootStr = dao.membersRoot;
+    witness.nonceStr = '0';
+    witness.oldVoteCountStr = [
+      this.proofs[this.proofs.length - 1].publicInput[
+        this.proofs[this.proofs.length - 1].publicInput.length - 2
+      ],
+      this.proofs[this.proofs.length - 1].publicInput[
+        this.proofs[this.proofs.length - 1].publicInput.length - 2
+      ],
+    ];
+
+    witness.newVoteCountStr = [];
+    for (let i = 0; i < 2; i++) {
+      witness.newVoteCountStr.push(
+        this.encryptionService.addCipherTexts(
+          proposal.encryption_key_pair.public_key,
+          vote.publicInput[vote.publicInput.length - 2 + i],
+          witness.oldVoteCountStr[i],
+        ),
+      );
+    }
+
+    witness.selfProofStr = JSON.stringify(this.proofs[this.proofs.length - 1]);
+    witness.userProofStr = JSON.stringify(vote);
+
+    console.log('Witness', witness);
+
+    const data = {
+      type: 'recursive',
+      witness: JSON.stringify(witness),
+      proposalId: proposal.id,
+    };
+
+    const response = await lastValueFrom(
+      this.httpService.post(`http://localhost:3001/aggregator`, data, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
+
+    console.log('Aggregator Recursive Proof Response:', response.status);
   }
 }

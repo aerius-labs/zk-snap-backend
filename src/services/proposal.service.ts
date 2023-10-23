@@ -12,10 +12,14 @@ import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ZkProof } from 'src/entities/zk-proof.entity';
+import { AggregatorProofInputs } from 'src/dtos/circuit.dto';
+import { Dao } from 'src/entities/dao.entity';
 
 @Injectable()
 export class ProposalService {
   constructor(
+    @InjectRepository(Dao)
+    private daoRepository: Repository<Dao>,
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
     @InjectRepository(ZkProof)
@@ -103,15 +107,6 @@ export class ProposalService {
       await this.proposalRepository.delete(options);
     } catch (error) {
       throw new BadRequestException('Failed to delete Proposal');
-    }
-  }
-
-  async storeProofs(proof: ZkProof) {
-    proof.id = uuid();
-    try {
-      return await this.zkProofRepository.save(proof);
-    } catch (error) {
-      throw new BadRequestException('Failed to store proof');
     }
   }
 }
