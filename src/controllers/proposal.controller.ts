@@ -73,6 +73,11 @@ export class ProposalController {
     return this.proposalService.findByDaolId(dao_id);
   }
 
+  @Get(':id/reveal-vote')
+  async revealVote(@Param('id') id: string) {
+    return this.proposalService.revealVote(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

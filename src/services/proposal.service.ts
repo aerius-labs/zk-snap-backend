@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -34,17 +36,6 @@ export class ProposalService {
 
   // TODO - No two proposals should have eqaul title
   async create(data: NewProposalDto): Promise<Proposal> {
-    // const dao = await this.daoService.findOne(data.dao_id);
-    // if (!dao) {
-    //   throw new BadRequestException(
-    //     `Dao with ID ${data.dao_id} does not exist`,
-    //   );
-    // }
-    // if (!dao.members.includes(data.creator)) {
-    //   throw new BadRequestException(
-    //     `Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`,
-    //   );
-    // }
     const enc = await this.encryptionService.generateEncryptedKeys(
       data.end_time,
     );
@@ -57,7 +48,7 @@ export class ProposalService {
       const createdProposal = await this.proposalRepository.save(proposal);
 
       this.scheduleEvent(createdProposal.id, createdProposal.end_time);
-      
+
       this.eventEmitter.emit('proposal.created', createdProposal.id);
 
       return createdProposal;
@@ -81,7 +72,7 @@ export class ProposalService {
       enc_pvt_key,
     );
     proposal.encryption_key_pair.private_key = dec_pvt_key.value;
-    await this.revealResult(dec_pvt_key.value, encrypted_votes)
+    await this.revealResult(dec_pvt_key.value, encrypted_votes);
     const options: FindOptionsWhere<Proposal> = {
       id: proposalId,
     };
@@ -92,14 +83,27 @@ export class ProposalService {
     }
   }
 
-  private async revealResult(pvt_key: string, vote: string[]): Promise<void>{
-    const new_private_key: PrivateKey = parseBigInt(pvt_key)
+  async revealVote(id: string): Promise<number[]> {
+    const proposal = await this.findOne(id);
+
+    const start_time = proposal.start_time.getTime();
+    const end_time = proposal.end_time.getTime();
+    if (start_time <= Date.now() || end_time <= Date.now()) {
+      throw new HttpException(
+        'start_time and end_time should be greater than the current date and time',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return proposal.result;
+  }
+
+  private async revealResult(pvt_key: string, vote: string[]): Promise<void> {
+    const new_private_key: PrivateKey = parseBigInt(pvt_key);
     vote.map((v) => {
-      new_private_key.decrypt(BigInt(v))
-    })
-    console.log("decrypted votes" ,vote)
-    console.log("decrypted private key",new_private_key)
-    
+      new_private_key.decrypt(BigInt(v));
+    });
+    console.log('decrypted votes', vote);
+    console.log('decrypted private key', new_private_key);
   }
 
   findAll(): Promise<Proposal[]> {
