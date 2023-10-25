@@ -89,7 +89,15 @@ export class ProposalService {
 
   async revealVote(id: string): Promise<string[]> {
     const proposal = await this.findOne(id);
-
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+    if (proposal.zk_proof === null) {
+      throw new HttpException(
+        'Zk proof not found for the given proposal',
+        HttpStatus.NOT_FOUND,
+      );
+    }
     // TODO - check if proposal is finished or not
 
     const actualResults = calculateActualResults(
