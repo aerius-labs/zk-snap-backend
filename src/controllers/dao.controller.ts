@@ -37,7 +37,6 @@ export class DaoController {
 
     const membersTree = createMerkleRoot(createDaoDto.members);
     createDaoDto.membersRoot = membersTree.getRoot().toString();
-    console.log('membersTree', membersTree);
     return await this.daoService.create(createDaoDto);
   }
 
@@ -70,9 +69,7 @@ export class DaoController {
       } catch (error) {
         console.log(error);
       }
-      console.log('Member Index', memberIndex, memberPublicKey);
       const merkleProofStr = JSON.stringify(merkleProof.toJSON());
-      console.log('MerkleProofStr', merkleProofStr);
       return res.status(HttpStatus.OK).json(merkleProofStr);
     } catch (error) {
       return res.status(HttpStatus.NOT_FOUND).json({ message: error.message });

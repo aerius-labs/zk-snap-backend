@@ -14,11 +14,8 @@ export class EncryptionService {
   async generateEncryptedKeys(end_time: Date) {
     const keys = await this.generatePallierKeys();
 
-    // Serialize the object to a string
     const privateString = stringifyBigInt(keys.privateKey);
 
-    // encrypt the private key
-    // add derantclient
     const client = testnet();
     const encrypted = await this.encrypt(
       client,
@@ -56,11 +53,7 @@ export class EncryptionService {
   }
 
   async addCipherTexts(pubKey: string, c1: string, c2: string) {
-    console.log('c1', c1);
-    console.log('c2', c2);
-    console.log('pubKey', pubKey);
     const pubJson = JSON.parse(pubKey);
-    console.log('pubJson', pubJson);
     const pub = new paillierBigint.PublicKey(
       BigInt(pubJson.n),
       BigInt(pubJson.g),

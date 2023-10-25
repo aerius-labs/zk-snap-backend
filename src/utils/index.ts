@@ -30,3 +30,13 @@ export const getRandomNBitNumber = (bits: number) => {
   }
   return randomBigInt;
 };
+
+export const calculateActualResults = (
+  currentYes: number,
+  currentNo: number,
+) => {
+  const actualYes = Math.floor((2 * currentYes - currentNo - 1) / 3);
+  const actualNo = Math.floor((2 * currentNo - currentYes - 1) / 3);
+
+  return [actualYes, actualNo];
+};

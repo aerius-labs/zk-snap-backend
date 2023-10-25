@@ -54,7 +54,7 @@ export class Proposal {
   status: 'NOT_STARTED' | 'ON_GOING' | 'FINISHED';
 
   @Column('simple-array')
-  result: number[];
+  result: string[];
 
   @Column(() => ZkProof)
   zk_proof: ZkProof;

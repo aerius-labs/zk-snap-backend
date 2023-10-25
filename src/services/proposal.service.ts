@@ -19,7 +19,8 @@ import { Dao } from 'src/entities/dao.entity';
 import * as schedule from 'node-schedule';
 import { testnet } from 'src/utils/drand-client';
 import { parseBigInt } from 'src/utils/big-int-string';
-import { PrivateKey } from 'paillier-bigint';
+import { PrivateKey, PublicKey } from 'paillier-bigint';
+import { calculateActualResults } from 'src/utils';
 
 @Injectable()
 export class ProposalService {
@@ -62,8 +63,8 @@ export class ProposalService {
       this.handleEventEnd(proposalId);
     });
   }
+
   private async handleEventEnd(proposalId: string): Promise<void> {
-    console.log(`Event ended for proposal: ${proposalId}`);
     const proposal = await this.findOne(proposalId);
     const encrypted_votes = proposal.zk_proof.publicInput.slice(-2);
     const enc_pvt_key = proposal.encryption_key_pair.private_key;
@@ -72,7 +73,10 @@ export class ProposalService {
       enc_pvt_key,
     );
     proposal.encryption_key_pair.private_key = dec_pvt_key.value;
-    await this.revealResult(dec_pvt_key.value, encrypted_votes);
+    proposal.result = await this.revealResult(
+      dec_pvt_key.value,
+      encrypted_votes,
+    );
     const options: FindOptionsWhere<Proposal> = {
       id: proposalId,
     };
@@ -83,27 +87,39 @@ export class ProposalService {
     }
   }
 
-  async revealVote(id: string): Promise<number[]> {
+  async revealVote(id: string): Promise<string[]> {
     const proposal = await this.findOne(id);
 
-    const start_time = proposal.start_time.getTime();
-    const end_time = proposal.end_time.getTime();
-    if (start_time <= Date.now() || end_time <= Date.now()) {
-      throw new HttpException(
-        'start_time and end_time should be greater than the current date and time',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    return proposal.result;
+    // TODO - check if proposal is finished or not
+
+    const actualResults = calculateActualResults(
+      parseInt(proposal.result[0]),
+      parseInt(proposal.result[1]),
+    );
+    return actualResults.map((r) => r.toString());
   }
 
-  private async revealResult(pvt_key: string, vote: string[]): Promise<void> {
-    const new_private_key: PrivateKey = parseBigInt(pvt_key);
-    vote.map((v) => {
-      new_private_key.decrypt(BigInt(v));
-    });
-    console.log('decrypted votes', vote);
-    console.log('decrypted private key', new_private_key);
+  private async revealResult(
+    pvt_key: string,
+    vote: string[],
+  ): Promise<string[]> {
+    const parsed_priv_key_json = parseBigInt(pvt_key);
+    const new_private_key: PrivateKey = new PrivateKey(
+      parsed_priv_key_json.lambda,
+      parsed_priv_key_json.mu,
+      new PublicKey(
+        parsed_priv_key_json.publicKey.n,
+        parsed_priv_key_json.publicKey.g,
+      ),
+      parsed_priv_key_json._p,
+      parsed_priv_key_json._q,
+    );
+    const decrypted_votes = [];
+    for (const v of vote) {
+      const decrypted_vote = new_private_key.decrypt(BigInt(v));
+      decrypted_votes.push(decrypted_vote.toString());
+    }
+    return decrypted_votes;
   }
 
   findAll(): Promise<Proposal[]> {
@@ -133,7 +149,6 @@ export class ProposalService {
 
   async update(id: string, data: UpdateProposalDto): Promise<void> {
     // TODO :- check if this ID exist or not
-    console.log(data);
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
@@ -157,18 +172,12 @@ export class ProposalService {
   }
 
   async storeProof(proof: any): Promise<void> {
-    // Store incoming proof as latest proof in Proposal
-    // Store latest proof for proposal in DB
-    console.log('Storing proof', proof);
     const options: FindOptionsWhere<Proposal> = {
       id: proof.proposalId,
     };
     const updatedProposal = await this.proposalRepository.update(options, {
       zk_proof: proof.generatedProof,
     });
-    console.log('Updated proposal', updatedProposal);
-    // Emit an event to pickup the next items
-    console.log('proof stored');
     this.eventEmitter.emit('proof.stored');
   }
 }

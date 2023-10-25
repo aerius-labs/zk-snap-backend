@@ -75,7 +75,7 @@ export class ProposalController {
 
   @Get(':id/reveal-vote')
   async revealVote(@Param('id') id: string) {
-    return this.proposalService.revealVote(id);
+    return { result: await this.proposalService.revealVote(id) };
   }
 
   @Patch(':id')
@@ -98,9 +98,6 @@ export class ProposalController {
 
   @Post(':id/vote')
   async vote(@Param('id') id: string, @Body() voteProof: any) {
-    console.log('id', id);
-    console.log('voteProof', voteProof);
-
     await this.rabbitMQService.sendToQueue({
       voteProof,
       proposalId: id,
@@ -116,7 +113,6 @@ export class ProposalController {
     try {
       const aggBaseProof =
         await this.generateAggregatorBaseProofWitness(proposal);
-      console.log('Aggregator Base Proof:', aggBaseProof);
 
       const response = await lastValueFrom(
         this.httpService.post(
@@ -129,8 +125,6 @@ export class ProposalController {
           },
         ),
       );
-
-      console.log('Aggregator Base Proof Response:', response.status);
     } catch (error) {
       console.error('Error handling ProposalCreatedEvent:', error);
     }
@@ -145,11 +139,8 @@ export class ProposalController {
       return;
     }
     const parsed = JSON.parse(message);
-    console.log('User Proof:', parsed.voteProof);
-    console.log('Proposal ID:', parsed.proposalId);
     const earlierProof = (await this.proposalService.findOne(parsed.proposalId))
       .zk_proof;
-    console.log('Earlier Proof:', earlierProof);
     await this.aggregateVote(parsed.proposalId, parsed.voteProof, earlierProof);
   }
 
@@ -165,8 +156,8 @@ export class ProposalController {
         proposal.encryption_key_pair.public_key,
       );
       const encryptionPublicKey = new PublicKey(
-        BigInt(encryptionPublicKeyJson.n.slice(0, -1)),
-        BigInt(encryptionPublicKeyJson.g.slice(0, -1)),
+        BigInt(encryptionPublicKeyJson.n),
+        BigInt(encryptionPublicKeyJson.g),
       );
 
       const bitLength = parseInt(process.env.BIT_LENGTH);
@@ -224,8 +215,6 @@ export class ProposalController {
     witness.selfProofStr = JSON.stringify(earlierProof);
     witness.userProofStr = JSON.stringify(userProof);
 
-    console.log('Witness', witness);
-
     const data = {
       type: 'recursive',
       witness: JSON.stringify(witness),
@@ -239,7 +228,5 @@ export class ProposalController {
         },
       }),
     );
-
-    console.log('Aggregator Recursive Proof Response:', response.status);
   }
 }

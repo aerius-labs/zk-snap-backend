@@ -35,7 +35,7 @@ export class ProposalMiddleware implements NestMiddleware {
   private sanitiseRequestBody(obj: any): void {
     obj.voting_options = ['Yes', 'No'];
     obj.status = 'NOT_STARTED';
-    obj.result = [0, 0];
+    obj.result = ['0', '0'];
   }
 
   private sanitiseProposalTitle(obj: any): void {
