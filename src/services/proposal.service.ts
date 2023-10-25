@@ -17,7 +17,7 @@ export class ProposalService {
         private encryptionService: EncryptionService,
     ) {}
     
-    // TODO - No two proposals should have eqaul title
+    // TODO - No two proposals should have equal title
     async create(data: NewProposalDto): Promise<Proposal> {
         const dao = await this.daoService.findOne(data.dao_id);
         if (!dao) {

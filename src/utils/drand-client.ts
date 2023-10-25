@@ -1,7 +1,7 @@
 import {HttpCachingChain, HttpChainClient} from "tlock-js"
 import {MAINNET_CHAIN_URL, TESTNET_CHAIN_URL} from "tlock-js/drand/defaults"
 
-export function mainnet(): HttpChainClient {
+export function drandMainnet(): HttpChainClient {
     const clientOpts = {
         disableBeaconVerification: false,
         noCache: false,
@@ -14,7 +14,7 @@ export function mainnet(): HttpChainClient {
     return new HttpChainClient(new HttpCachingChain(MAINNET_CHAIN_URL, clientOpts), clientOpts, {})
 }
 
-export function testnet(): HttpChainClient {
+export function drandTestnet(): HttpChainClient {
     const clientOpts = {
         disableBeaconVerification: false,
         noCache: false,

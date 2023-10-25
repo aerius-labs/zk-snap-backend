@@ -41,8 +41,8 @@ import {
     // TODO - Write this in more efficent way
     @Column(() => EncryptionKeyPair)
     encryption_key_pair: EncryptionKeyPair = {
-      public_key: '',
-      private_key: ''
+      public_key: null,
+      private_key: null
     };
   
     @Column({ type: 'enum', enum: ['NOT_STARTED', 'ON_GOING', 'FINISHED'], default: 'NOT_STARTED' })

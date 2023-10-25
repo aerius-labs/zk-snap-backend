@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as paillierBigint from 'paillier-bigint';
 import { stringifyBigInt } from 'src/utils/big-int-string';
-import { testnet } from 'src/utils/drand-client';
+import { drandTestnet as testnet } from 'src/utils/drand-client';
 import {HttpChainClient, roundAt, timelockDecrypt, timelockEncrypt} from "tlock-js"
 
 @Injectable()
@@ -14,7 +14,7 @@ export class EncryptionService {
         const privateString = stringifyBigInt(keys.privateKey)
 
         // encrypt the private key
-        // add derantclient
+        // add derand client
         const client = testnet();
         const encrypted = await this.encrypt(client, privateString, end_time.getTime());
 
@@ -25,7 +25,7 @@ export class EncryptionService {
     }
 
     private async generatePallierKeys() {
-        const bit_length = parseInt(process.env.BIT_LENGHT, 10)
+        const bit_length = parseInt(process.env.BIT_LENGTH, 10)
         return await paillierBigint.generateRandomKeys(bit_length);
     }
 
