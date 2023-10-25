@@ -78,6 +78,7 @@ export class ProposalService {
       dec_pvt_key.value,
       encrypted_votes,
     );
+    proposal.status = 'FINISHED';
     const options: FindOptionsWhere<Proposal> = {
       id: proposalId,
     };

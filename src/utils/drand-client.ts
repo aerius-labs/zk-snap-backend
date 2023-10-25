@@ -32,10 +32,20 @@ export function testnet(): HttpChainClient {
     },
   };
 
-  // passing an empty httpOptions arg to strip the user agent header to stop CORS issues
-  return new HttpChainClient(
-    new HttpCachingChain(TESTNET_CHAIN_URL, clientOpts),
-    clientOpts,
-    {},
-  );
+  const maxRetries = 5;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return new HttpChainClient(
+        new HttpCachingChain(TESTNET_CHAIN_URL, clientOpts),
+        clientOpts,
+        {},
+      );
+    } catch (err) {
+      console.log(`Attempt ${attempt} failed:`, err);
+      if (attempt === maxRetries) {
+        console.log('Max retries reached');
+        throw new Error('Failed to connect to drand');
+      }
+    }
+  }
 }
