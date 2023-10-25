@@ -98,10 +98,17 @@ export class ProposalController {
 
   @Post(':id/vote')
   async vote(@Param('id') id: string, @Body() voteProof: any) {
+    // TODO - should only register vote when proposal is active
+
+    if (!voteProof) {
+      throw new NotFoundException('Vote proof not found');
+    }
+
     await this.rabbitMQService.sendToQueue({
       voteProof,
       proposalId: id,
     });
+    console.log('vote sent to queue');
 
     await this.generateAggregatorRecursiveProofWitness();
   }
@@ -125,6 +132,7 @@ export class ProposalController {
           },
         ),
       );
+      console.log('Aggregator witness posted');
     } catch (error) {
       console.error('Error handling ProposalCreatedEvent:', error);
     }
@@ -228,5 +236,6 @@ export class ProposalController {
         },
       }),
     );
+    console.log('Aggregator witness posted');
   }
 }

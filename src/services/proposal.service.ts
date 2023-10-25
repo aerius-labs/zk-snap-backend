@@ -52,6 +52,7 @@ export class ProposalService {
 
       this.eventEmitter.emit('proposal.created', createdProposal.id);
 
+      console.log('Proposal created');
       return createdProposal;
     } catch (error) {
       throw new BadRequestException('Failed to create proposal');
@@ -186,6 +187,10 @@ export class ProposalService {
     const updatedProposal = await this.proposalRepository.update(options, {
       zk_proof: proof.generatedProof,
     });
+    if (!updatedProposal) {
+      throw new NotFoundException('Proposal not found');
+    }
     this.eventEmitter.emit('proof.stored');
+    console.log('Proof stored');
   }
 }
