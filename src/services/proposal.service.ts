@@ -5,17 +5,20 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {Proposal} from '../entities/proposal.entity'
 import {NewProposalDto, UpdateProposalDto} from 'src/dtos/proposal.dto'
 import { DaoService } from "./dao.service";
+import { EncryptionService} from "./encryption.sevice";
+
 
 @Injectable()
 export class ProposalService {
     constructor(
         @InjectRepository(Proposal)
         private proposalRepository: Repository<Proposal>,
-        private daoService: DaoService
+        private daoService: DaoService,
+        private encryptionService: EncryptionService,
     ) {}
-
+    
+    // TODO - No two proposals should have equal title
     async create(data: NewProposalDto): Promise<Proposal> {
-        const proposal = this.proposalRepository.create(data);
         const dao = await this.daoService.findOne(data.dao_id);
         if (!dao) {
             throw new BadRequestException(`Dao with ID ${data.dao_id} does not exist`);
@@ -23,6 +26,13 @@ export class ProposalService {
         if (!dao.members.includes(data.creator)) { 
             throw new BadRequestException(`Creator ${data.creator} is not a member of Dao with ID ${data.dao_id}`);
         }
+        
+        const enc = await this.encryptionService.generateEncryptedKeys(data.end_time)
+
+        let proposal = this.proposalRepository.create(data);
+        proposal.encryption_key_pair.public_key = enc.pub_key
+        proposal.encryption_key_pair.private_key = enc.pvt_key
+ 
         try {
             return await this.proposalRepository.save(proposal);
         } catch (error) {

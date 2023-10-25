@@ -6,8 +6,7 @@ import {
   } from '@nestjs/common';
   import { NextFunction, Request, Response } from 'express';
   import { v4 as uuidv4 } from 'uuid';
-  import { constants } from 'src/constants';
-  import { isKeccakHash } from 'src/utils';
+
   
   @Injectable()
   export class ProposalMiddleware implements NestMiddleware {
@@ -16,10 +15,12 @@ import {
         this.sanitiseProposalId(req.body);
         this.sanitiseProposalTitle(req.body);
         this.sanitiseProposalDescription(req.body);
+        this.sanitiseProposalTime(req.body);
         //TODO - Add other sanitation methods for POST if needed
       } else if (req.method === 'PATCH') {
         this.sanitiseProposalTitle(req.body);
         this.sanitiseProposalDescription(req.body);
+        this.sanitiseProposalTime(req.body);
         //TOTO - Add other sanitation methods for PATCH if needed
       }
       next();
@@ -46,5 +47,37 @@ import {
         );
       }
     }
+
+    private sanitiseProposalTime(obj: any): void {
+      // TODO- handle the error if the these are not date
+      obj.start_time = new Date(obj.start_time)
+      obj.end_time = new Date(obj.end_time)
+      if (obj.start_time instanceof Date && obj.end_time instanceof Date) {
+          const currentMillis = Date.now();
+          const startTimeMillis = new Date(obj.start_time).getTime();
+          const endTimeMillis = new Date(obj.end_time).getTime();
+
+
+          if (startTimeMillis > endTimeMillis) {
+            throw new HttpException(
+              'end_time should be greater than the start_time',
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+
+          if (startTimeMillis <= currentMillis || endTimeMillis <= currentMillis) {
+              throw new HttpException(
+                  'start_time and end_time should be greater than the current date and time',
+                  HttpStatus.BAD_REQUEST,
+              );
+          }
+      } else {
+          throw new HttpException(
+              'start_time and end_time should be valid date objects',
+              HttpStatus.BAD_REQUEST,
+          );
+      }
+  }
+
   }
   
