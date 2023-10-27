@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, FindOptionsWhere, In } from 'typeorm';
 
 import { Dao } from '../entities/dao.entity';
-import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
+import { CreateDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
+import { createMerkleRoot } from 'src/utils/merkleTreeUtils';
 
 @Injectable()
 export class DaoService {
@@ -12,8 +17,16 @@ export class DaoService {
     private daoRepository: Repository<Dao>,
   ) {}
 
-  async create(data: NewDaoDto): Promise<Dao> {
+  async create(data: CreateDaoDto): Promise<Dao> {
+    if (!data.members || data.members.length === 0) {
+      throw new NotFoundException('DAO members list is empty');
+    }
+
+    const membersTree = createMerkleRoot(data.members);
+
     const dao = this.daoRepository.create(data);
+    dao.membersRoot = membersTree.getRoot().toString();
+    dao.id = uuidv4();
     try {
       return await this.daoRepository.save(dao);
     } catch (error) {
@@ -71,4 +84,7 @@ export class DaoService {
       throw new BadRequestException('Failed to delete Dao');
     }
   }
+}
+function uuidv4(): string {
+  throw new Error('Function not implemented.');
 }
