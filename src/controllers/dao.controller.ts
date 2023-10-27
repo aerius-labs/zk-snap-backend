@@ -11,9 +11,10 @@ import {
   NotFoundException,
   Res,
   HttpStatus,
+  UsePipes,
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
-import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
+import { CreateDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
 import { Dao } from 'src/entities/dao.entity';
 import { extractDaoDetails } from 'src/utils/filter';
 import { ProposalController } from './proposal.controller';
@@ -22,6 +23,7 @@ import { ProposalService } from 'src/services/proposal.service';
 import { EncryptionService } from 'src/services/encryption.service';
 import { createMerkleProof, createMerkleRoot } from 'src/utils/merkleTreeUtils';
 import { Field, Poseidon, PublicKey } from 'o1js';
+import { ValidationPipe } from 'src/pipes/create-dao.pipe';
 @Controller('dao')
 export class DaoController {
   constructor(
@@ -30,13 +32,8 @@ export class DaoController {
   ) {}
 
   @Post()
-  async create(@Body() createDaoDto: NewDaoDto) {
-    if (!createDaoDto.members || createDaoDto.members.length === 0) {
-      throw new NotFoundException('DAO members list is empty');
-    }
-
-    const membersTree = createMerkleRoot(createDaoDto.members);
-    createDaoDto.membersRoot = membersTree.getRoot().toString();
+  @UsePipes(new ValidationPipe())
+  async create(@Body() createDaoDto: CreateDaoDto) {
     return await this.daoService.create(createDaoDto);
   }
 
