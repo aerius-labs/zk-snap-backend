@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, FindOptionsWhere, In } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Dao } from '../entities/dao.entity';
 import { CreateDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
-import { createMerkleRoot } from 'src/utils/merkleTreeUtils';
+import { createMerkleRoot } from '../utils/merkleTreeUtils';
 
 @Injectable()
 export class DaoService {
@@ -84,7 +85,4 @@ export class DaoService {
       throw new BadRequestException('Failed to delete Dao');
     }
   }
-}
-function uuidv4(): string {
-  throw new Error('Function not implemented.');
 }

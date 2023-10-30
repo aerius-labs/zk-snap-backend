@@ -10,17 +10,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { v4 as uuid } from 'uuid';
 
 import { Proposal } from '../entities/proposal.entity';
-import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
+import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ZkProof } from 'src/entities/zk-proof.entity';
-import { AggregatorProofInputs } from 'src/dtos/circuit.dto';
-import { Dao } from 'src/entities/dao.entity';
+import { ZkProof } from '../entities/zk-proof.entity';
+import { AggregatorProofInputs } from '../dtos/circuit.dto';
+import { Dao } from '../entities/dao.entity';
 import * as schedule from 'node-schedule';
-import { testnet } from 'src/utils/drand-client';
-import { parseBigInt } from 'src/utils/big-int-string';
+import { testnet } from '../utils/drand-client';
+import { parseBigInt } from '../utils/big-int-string';
 import { PrivateKey, PublicKey } from 'paillier-bigint';
-import { calculateActualResults } from 'src/utils';
+import { calculateActualResults } from '../utils';
 
 @Injectable()
 export class ProposalService {

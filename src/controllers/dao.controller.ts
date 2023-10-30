@@ -14,16 +14,16 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
-import { CreateDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
-import { Dao } from 'src/entities/dao.entity';
-import { extractDaoDetails } from 'src/utils/filter';
+import { CreateDaoDto, UpdateDaoDto } from '../dtos/dao.dto';
+import { Dao } from '../entities/dao.entity';
+import { extractDaoDetails } from '../utils/filter';
 import { ProposalController } from './proposal.controller';
-import { NewProposalDto } from 'src/dtos/proposal.dto';
-import { ProposalService } from 'src/services/proposal.service';
+import { NewProposalDto } from '../dtos/proposal.dto';
+import { ProposalService } from '../services/proposal.service';
 import { EncryptionService } from 'src/services/encryption.service';
-import { createMerkleProof, createMerkleRoot } from 'src/utils/merkleTreeUtils';
+import { createMerkleProof, createMerkleRoot } from '../utils/merkleTreeUtils';
 import { Field, Poseidon, PublicKey } from 'o1js';
-import { ValidationPipe } from 'src/pipes/create-dao.pipe';
+import { ValidationPipe } from '../pipes/create-dao.pipe';
 @Controller('dao')
 export class DaoController {
   constructor(
