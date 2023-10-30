@@ -58,7 +58,7 @@ export class DaoService {
     try {
       return await this.daoRepository.findOne(options);
     } catch (error) {
-      throw new BadRequestException('Failed to find Dao');
+      throw new NotFoundException('Failed to find Dao');
     }
   }
 
