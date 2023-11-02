@@ -36,15 +36,24 @@ export class DaoService {
     }
   }
 
-  async getMerkleProof(daoId: string, memberPublicKey: string): Promise<string> {
+  async getMerkleProof(
+    daoId: string,
+    memberPublicKey: string,
+  ): Promise<string> {
     const dao = await this.findOne(daoId);
     if (!dao) {
       throw new NotFoundException('DAO not found');
     }
 
-    const memberIndex = dao.members.findIndex(member => member === memberPublicKey);
+    if (!dao.members) {
+      throw new BadRequestException('DAO members list is empty');
+    }
+
+    const memberIndex = dao.members.findIndex(
+      (member) => member === memberPublicKey,
+    );
     if (memberIndex === -1) {
-      throw new NotFoundException('Member not found in DAO');
+      throw new BadRequestException('Member not found in DAO');
     }
 
     const merkleProof = createMerkleProof(dao.members, memberIndex);
