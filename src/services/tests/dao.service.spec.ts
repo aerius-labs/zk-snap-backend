@@ -9,7 +9,7 @@ import {
   createMerkleProof,
   createMerkleRoot,
 } from '../../utils/merkleTreeUtils';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { v4 } from 'uuid';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
@@ -215,4 +215,92 @@ describe('DaoService', () => {
       expect(daoRepository.findOne).toHaveBeenCalledWith(options);
     });
   });
+
+  describe('update', () => {
+    const members = [
+      'B62qqN8ErUKLx7EhvgMBRQK56AyQborFFnVkjXjvmS679Qwor7b4QE8',
+      'B62qp3g6RievigAvtVpho8JGiu4bLBHqX5cfVNSiWHiTrS9XK9B5SYY',
+    ];
+    const membersRoot = createMerkleRoot(members);
+    const id = v4();
+    const dao: Dao = {
+      id: id,
+      name: 'Test DAO',
+      description: 'This is a test DAO',
+      _id: new ObjectId(),
+      membersRoot: membersRoot.getRoot().toString(),
+      members: members,
+      membersTree: null,
+      logo: 'https://example.com/logo.png',
+    };
+
+    it('should update the dao', async () => {
+      const daoData: UpdateDaoDto = {
+        name: 'Test DAO',
+        description: 'This is a test DAO',
+        logo: 'https://example.com/logo.png',
+        members: [],
+      };
+      const daoRepository = {
+        update: jest.fn().mockResolvedValue({ affected: 1 }),
+        findOne: jest.fn().mockResolvedValue({ ...dao, ...daoData }),
+      };
+      const daoService = new DaoService(daoRepository as any);
+
+      await daoService.update(id, daoData);
+
+      const updatedDao = await daoService.findOne(id);
+      expect(updatedDao).toEqual({ ...dao, ...daoData });
+      expect(daoRepository.update).toHaveBeenCalledWith(id, daoData);
+      const options: FindOneOptions<Dao> = {
+        where: { id },
+      };
+      expect(daoRepository.findOne).toHaveBeenCalledWith(options);
+    });
+
+    it('should throw a NotFoundException if dao is not found', async () => {
+      const daoData: UpdateDaoDto = {
+        name: 'Test DAO',
+        description: 'This is a test DAO',
+        logo: 'https://example.com/logo.png',
+        members: [],
+      };
+      const daoRepository = {
+        save: jest.fn().mockResolvedValue({ affected: 1 }),
+        findOne: jest.fn().mockResolvedValue({ dao }),
+      };
+      const daoService = new DaoService(daoRepository as any);
+      daoRepository.findOne.mockResolvedValue(undefined);
+
+      await expect(daoService.update('123', daoData)).rejects.toThrowError(
+        NotFoundException,
+      );
+      const options: FindOneOptions<Dao> = {
+        where: { id: '123' },
+      };
+      expect(daoRepository.findOne).toHaveBeenCalledWith(options);
+      expect(daoRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  //   describe('remove', () => {
+  //     const daoId = '123';
+
+  //     it('should remove the dao', async () => {
+  //       daoRepository.delete.mockResolvedValue({ affected: 1 });
+
+  //       await daoService.remove(daoId);
+
+  //       expect(daoRepository.delete).toHaveBeenCalledWith(daoId);
+  //     });
+
+  //     it('should throw a NotFoundException if dao is not found', async () => {
+  //       daoRepository.delete.mockResolvedValue({ affected: 0 });
+
+  //       await expect(daoService.remove(daoId)).rejects.toThrowError(
+  //         NotFoundException,
+  //       );
+  //       expect(daoRepository.delete).toHaveBeenCalledWith(daoId);
+  //     });
+  //   });
 });
