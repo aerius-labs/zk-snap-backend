@@ -5,10 +5,13 @@ import { ObjectId } from 'mongodb';
 import { Dao } from '../../entities/dao.entity';
 import { DaoService } from '../dao.service';
 import { CreateDaoDto, UpdateDaoDto } from '../../dtos/dao.dto';
-import { createMerkleRoot } from '../../utils/merkleTreeUtils';
+import {
+  createMerkleProof,
+  createMerkleRoot,
+} from '../../utils/merkleTreeUtils';
 import { FindOneOptions, Repository } from 'typeorm';
 import { v4 } from 'uuid';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('DaoService', () => {
   let daoService: DaoService;
@@ -140,7 +143,74 @@ describe('DaoService', () => {
         NotFoundException,
       );
       const options: FindOneOptions<Dao> = {
-        where: { id},
+        where: { id },
+      };
+      expect(daoRepository.findOne).toHaveBeenCalledWith(options);
+    });
+  });
+
+  describe('getMerkleProof', () => {
+    const daoId = '123';
+    const members = [
+      'B62qqN8ErUKLx7EhvgMBRQK56AyQborFFnVkjXjvmS679Qwor7b4QE8',
+      'B62qp3g6RievigAvtVpho8JGiu4bLBHqX5cfVNSiWHiTrS9XK9B5SYY',
+    ];
+    const membersRoot = createMerkleRoot(members);
+    const memberPublicKey = members[0];
+    const memberIndex = members.findIndex(
+      (member) => member === memberPublicKey,
+    );
+    const proof = createMerkleProof(members, memberIndex);
+
+    it('should return a merkle proof', async () => {
+      const daoRepository = {
+        findOne: jest.fn().mockResolvedValue({
+          id: daoId,
+          membersRoot: membersRoot.getRoot().toString(),
+          members: members,
+        }),
+      };
+      const daoService = new DaoService(daoRepository as any);
+
+      const result = await daoService.getMerkleProof(daoId, memberPublicKey);
+      expect(result).toEqual(JSON.stringify(proof));
+      const options: FindOneOptions<Dao> = {
+        where: { id: daoId },
+      };
+      expect(daoRepository.findOne).toHaveBeenCalledWith(options);
+    });
+
+    it('should throw a NotFoundException if dao is not found', async () => {
+      const daoRepository = {
+        findOne: jest.fn().mockResolvedValue(undefined),
+      };
+      const daoService = new DaoService(daoRepository as any);
+
+      await expect(
+        daoService.getMerkleProof(daoId, memberPublicKey),
+      ).rejects.toThrowError(NotFoundException);
+      const options: FindOneOptions<Dao> = {
+        where: { id: daoId },
+      };
+      expect(daoRepository.findOne).toHaveBeenCalledWith(options);
+    });
+
+    it('should throw a BadRequestException if member is not in dao', async () => {
+      const daoRepository = {
+        findOne: jest.fn().mockResolvedValue({
+          id: daoId,
+          membersRoot: membersRoot.getRoot().toString(),
+          members: members,
+        }),
+      };
+      const daoService = new DaoService(daoRepository as any);
+
+      const invalidMemberPublicKey = 'invalid-public-key';
+      await expect(
+        daoService.getMerkleProof(daoId, invalidMemberPublicKey),
+      ).rejects.toThrowError(BadRequestException);
+      const options: FindOneOptions<Dao> = {
+        where: { id: daoId },
       };
       expect(daoRepository.findOne).toHaveBeenCalledWith(options);
     });
