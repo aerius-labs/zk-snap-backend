@@ -41,36 +41,8 @@ export class DaoController {
   async getMerkleProof(
     @Param('daoId') daoId: string,
     @Param('memberPublicKey') memberPublicKey: string,
-    @Res() res,
   ) {
-    try {
-      const dao = await this.daoService.findOne(daoId);
-      if (!dao) {
-        throw new NotFoundException('DAO not found');
-      }
-
-      const memberIndex = dao.members.findIndex(
-        (member) => member === memberPublicKey,
-      );
-      if (memberIndex === -1) {
-        throw new NotFoundException('Member not found in DAO');
-      }
-
-      const merkleProof = createMerkleProof(dao.members, memberIndex);
-      try {
-        merkleProof
-          .calculateRoot(
-            Poseidon.hash([PublicKey.fromBase58(memberPublicKey).x]),
-          )
-          .assertEquals(Field(dao.membersRoot));
-      } catch (error) {
-        console.log(error);
-      }
-      const merkleProofStr = JSON.stringify(merkleProof.toJSON());
-      return res.status(HttpStatus.OK).json(merkleProofStr);
-    } catch (error) {
-      return res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
-    }
+    return await this.daoService.getMerkleProof(daoId, memberPublicKey);
   }
   @Get('info')
   async findInfoAllDao() {

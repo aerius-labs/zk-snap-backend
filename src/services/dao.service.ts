@@ -9,7 +9,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Dao } from '../entities/dao.entity';
 import { CreateDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
-import { createMerkleRoot } from '../utils/merkleTreeUtils';
+import { createMerkleProof, createMerkleRoot } from '../utils/merkleTreeUtils';
+import { Field, Poseidon, PublicKey } from 'o1js';
 
 @Injectable()
 export class DaoService {
@@ -33,6 +34,29 @@ export class DaoService {
     } catch (error) {
       throw new BadRequestException('Failed to create Dao');
     }
+  }
+
+  async getMerkleProof(daoId: string, memberPublicKey: string): Promise<string> {
+    const dao = await this.findOne(daoId);
+    if (!dao) {
+      throw new NotFoundException('DAO not found');
+    }
+
+    const memberIndex = dao.members.findIndex(member => member === memberPublicKey);
+    if (memberIndex === -1) {
+      throw new NotFoundException('Member not found in DAO');
+    }
+
+    const merkleProof = createMerkleProof(dao.members, memberIndex);
+    try {
+      merkleProof
+        .calculateRoot(Poseidon.hash([PublicKey.fromBase58(memberPublicKey).x]))
+        .assertEquals(Field(dao.membersRoot));
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Invalid Merkle Proof');
+    }
+    return JSON.stringify(merkleProof.toJSON());
   }
 
   findAll(): Promise<Dao[]> {
