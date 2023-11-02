@@ -96,12 +96,13 @@ export class DaoService {
   }
 
   async update(id: string, data: UpdateDaoDto): Promise<void> {
-    // TODO :- check if this ID exist or not
-    const options: FindOptionsWhere<Dao> = {
-      id,
-    };
+    const dao = await this.findOne(id);
+    if (!dao) {
+      throw new NotFoundException('Dao not found');
+    }
+
     try {
-      await this.daoRepository.update(options, data);
+      await this.daoRepository.update(id, data);
     } catch (error) {
       throw new BadRequestException('Failed to update Dao');
     }
