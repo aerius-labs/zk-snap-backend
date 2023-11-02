@@ -283,24 +283,29 @@ describe('DaoService', () => {
     });
   });
 
-  //   describe('remove', () => {
-  //     const daoId = '123';
+  describe('remove', () => {
+    const daoId = '123';
 
-  //     it('should remove the dao', async () => {
-  //       daoRepository.delete.mockResolvedValue({ affected: 1 });
+    it('should remove the dao', async () => {
+      const daoRepository = {
+        delete: jest.fn().mockResolvedValue({ affected: 1 }),
+        findOne: jest.fn().mockResolvedValue({ id: daoId } as Dao),
+      };
+      const daoService = new DaoService(daoRepository as any);
 
-  //       await daoService.remove(daoId);
+      await daoService.remove(daoId);
+      expect(daoRepository.delete).toHaveBeenCalledWith({ id: daoId });
+    });
 
-  //       expect(daoRepository.delete).toHaveBeenCalledWith(daoId);
-  //     });
+    it('should throw a NotFoundException if dao is not found', async () => {
+      const daoRepository = {
+        delete: jest.fn().mockResolvedValue({ affected: 0 }),
+        findOne: jest.fn().mockResolvedValue(null),
+      };
 
-  //     it('should throw a NotFoundException if dao is not found', async () => {
-  //       daoRepository.delete.mockResolvedValue({ affected: 0 });
-
-  //       await expect(daoService.remove(daoId)).rejects.toThrowError(
-  //         NotFoundException,
-  //       );
-  //       expect(daoRepository.delete).toHaveBeenCalledWith(daoId);
-  //     });
-  //   });
+      await expect(daoService.remove(daoId)).rejects.toThrowError(
+        NotFoundException,
+      );
+    });
+  });
 });

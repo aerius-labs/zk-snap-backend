@@ -109,7 +109,11 @@ export class DaoService {
   }
 
   async remove(id: string): Promise<void> {
-    // TODO :- check if this ID exist or not
+    const dao = await this.findOne(id);
+    if (!dao) {
+      throw new NotFoundException('Dao not found');
+    }
+
     const options: FindOptionsWhere<Dao> = {
       id,
     };
