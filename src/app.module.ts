@@ -34,14 +34,5 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
   providers: [],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ProposalMiddleware).forRoutes({
-      path: 'proposal',
-      method: RequestMethod.POST,
-    });
-    consumer.apply(ProposalMiddleware).forRoutes({
-      path: 'dao/proposal',
-      method: RequestMethod.POST,
-    });
-  }
+  configure(consumer: MiddlewareConsumer) {}
 }
