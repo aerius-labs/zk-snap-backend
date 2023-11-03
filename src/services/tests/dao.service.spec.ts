@@ -241,21 +241,14 @@ describe('DaoService', () => {
         logo: 'https://example.com/logo.png',
         members: [],
       };
-      const daoRepository = {
-        update: jest.fn().mockResolvedValue({ affected: 1 }),
-        findOne: jest.fn().mockResolvedValue({ ...dao, ...daoData }),
-      };
-      const daoService = new DaoService(daoRepository as any);
+      jest.spyOn(daoService, 'findOne').mockResolvedValue(dao as Dao);
+      jest
+        .spyOn(daoRepository, 'update')
+        .mockResolvedValue({ affected: 1 } as any);
 
-      await daoService.update(id, daoData);
-
-      const updatedDao = await daoService.findOne(id);
-      expect(updatedDao).toEqual({ ...dao, ...daoData });
-      expect(daoRepository.update).toHaveBeenCalledWith(id, daoData);
-      const options: FindOneOptions<Dao> = {
-        where: { id },
-      };
-      expect(daoRepository.findOne).toHaveBeenCalledWith(options);
+      await expect(daoService.update(id, daoData)).resolves.toBeUndefined();
+      expect(daoService.findOne).toHaveBeenCalledWith(id);
+      expect(daoRepository.update).toHaveBeenCalledWith({ id }, daoData);
     });
 
     it('should throw a NotFoundException if dao is not found', async () => {

@@ -100,11 +100,14 @@ export class DaoService {
     if (!dao) {
       throw new NotFoundException('Dao not found');
     }
-
     try {
-      await this.daoRepository.update(id, data);
+      const options: FindOptionsWhere<Dao> = {
+        id,
+      };
+      await this.daoRepository.update(options, data);
     } catch (error) {
-      throw new BadRequestException('Failed to update Dao');
+      console.log('error', error);
+      throw new BadRequestException('Failed to update Dao ${error.message}');
     }
   }
 
