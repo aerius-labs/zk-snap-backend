@@ -6,23 +6,16 @@ import {
   Patch,
   Param,
   Delete,
-  Inject,
   BadRequestException,
-  NotFoundException,
-  Res,
-  HttpStatus,
   UsePipes,
+  NotFoundException,
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
 import { CreateDaoDto, UpdateDaoDto } from '../dtos/dao.dto';
 import { Dao } from '../entities/dao.entity';
 import { extractDaoDetails } from '../utils/filter';
-import { ProposalController } from './proposal.controller';
 import { NewProposalDto } from '../dtos/proposal.dto';
 import { ProposalService } from '../services/proposal.service';
-import { EncryptionService } from 'src/services/encryption.service';
-import { createMerkleProof, createMerkleRoot } from '../utils/merkleTreeUtils';
-import { Field, Poseidon, PublicKey } from 'o1js';
 import { ValidationPipe } from '../pipes/create-dao.pipe';
 @Controller('dao')
 export class DaoController {
@@ -60,7 +53,7 @@ export class DaoController {
   async createProposal(@Body() newProposal: NewProposalDto) {
     const dao = await this.daoService.findOne(newProposal.dao_id);
     if (!dao) {
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Dao with ID ${newProposal.dao_id} does not exist`,
       );
     }
@@ -85,6 +78,7 @@ export class DaoController {
   }
 
   @Patch(':id')
+  @UsePipes(new ValidationPipe())
   update(@Param('id') id: string, @Body() updateDaoDto: UpdateDaoDto) {
     return this.daoService.update(id, updateDaoDto);
   }
