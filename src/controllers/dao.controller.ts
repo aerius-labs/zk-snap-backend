@@ -14,7 +14,7 @@ import { DaoService } from '../services/dao.service';
 import { CreateDaoDto, UpdateDaoDto } from '../dtos/dao.dto';
 import { Dao } from '../entities/dao.entity';
 import { extractDaoDetails } from '../utils/filter';
-import { NewProposalDto } from '../dtos/proposal.dto';
+import { createdProposalDto as NewProposalDto } from '../dtos/proposal.dto';
 import { ProposalService } from '../services/proposal.service';
 import { ValidationPipe } from '../pipes/create-dao.pipe';
 @Controller('dao')
@@ -50,6 +50,7 @@ export class DaoController {
   }
 
   @Post('proposal')
+  @UsePipes(new ValidationPipe())
   async createProposal(@Body() newProposal: NewProposalDto) {
     const dao = await this.daoService.findOne(newProposal.dao_id);
     if (!dao) {
