@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsString,
   Length,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateDaoDto {
@@ -25,16 +26,28 @@ export class CreateDaoDto {
 }
 
 export class UpdateDaoDto {
+  @IsOptional()
   @IsString()
-  name: string;
+  @MaxLength(50, {
+    message: 'Name should not be greater than 50 characters',
+  })
+  name?: string;
 
+  @IsOptional()
   @IsString()
-  description: string;
+  @MaxLength(200, {
+    message: 'Description should not be greater than 200 characters',
+  })
+  description?: string;
 
+  @IsOptional()
   @IsString()
-  logo: string;
+  logo?: string;
 
+  @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
-  members: string[];
+  @ArrayNotEmpty({
+    message: 'Members should be a non-empty array',
+  })
+  members?: string[];
 }
