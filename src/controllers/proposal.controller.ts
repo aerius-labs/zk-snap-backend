@@ -9,7 +9,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
-import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
+import {
+  createdProposalDto as NewProposalDto,
+  UpdateProposalDto,
+} from '../dtos/proposal.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Proposal } from '../entities/proposal.entity';
 import { DaoService } from '../services/dao.service';
