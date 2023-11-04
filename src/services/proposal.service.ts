@@ -7,20 +7,22 @@ import {
 } from '@nestjs/common';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { v4 as uuid } from 'uuid';
 
 import { Proposal } from '../entities/proposal.entity';
-import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
+import {
+  createdProposalDto as NewProposalDto,
+  UpdateProposalDto,
+} from '../dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ZkProof } from '../entities/zk-proof.entity';
-import { AggregatorProofInputs } from '../dtos/circuit.dto';
 import { Dao } from '../entities/dao.entity';
 import * as schedule from 'node-schedule';
 import { testnet } from '../utils/drand-client';
 import { parseBigInt } from '../utils/big-int-string';
 import { PrivateKey, PublicKey } from 'paillier-bigint';
 import { calculateActualResults } from '../utils';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class ProposalService {
@@ -37,11 +39,39 @@ export class ProposalService {
 
   // TODO - No two proposals should have eqaul title
   async create(data: NewProposalDto): Promise<Proposal> {
+    data.start_time = new Date(data.start_time);
+    data.end_time = new Date(data.end_time);
+    if (data.start_time instanceof Date && data.end_time instanceof Date) {
+      const currentMillis = Date.now();
+      const startTimeMillis = new Date(data.start_time).getTime();
+      const endTimeMillis = new Date(data.end_time).getTime();
+
+      if (startTimeMillis > endTimeMillis) {
+        throw new HttpException(
+          'end_time should be greater than the start_time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (startTimeMillis <= currentMillis || endTimeMillis <= currentMillis) {
+        throw new HttpException(
+          'start_time and end_time should be greater than the current date and time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      throw new HttpException(
+        'start_time and end_time should be valid date objects',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const enc = await this.encryptionService.generateEncryptedKeys(
       data.end_time,
     );
 
     let proposal = this.proposalRepository.create(data);
+    proposal.id = uuid();
     proposal.encryption_key_pair.public_key = enc.pub_key;
     proposal.encryption_key_pair.private_key = enc.pvt_key;
 
