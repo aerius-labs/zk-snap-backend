@@ -35,7 +35,7 @@ export class ProposalService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  // TODO - No two proposals should have eqaul title
+  // TODO - No two proposals should have equal title
   async create(data: NewProposalDto): Promise<Proposal> {
     const enc = await this.encryptionService.generateEncryptedKeys(
       data.end_time,
