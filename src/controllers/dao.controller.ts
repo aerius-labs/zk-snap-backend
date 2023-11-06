@@ -50,7 +50,7 @@ export class DaoController {
   }
 
   @Post('proposal')
-  @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe({ transform: true }))
   async createProposal(@Body() newProposal: NewProposalDto) {
     const dao = await this.daoService.findOne(newProposal.dao_id);
     if (!dao) {

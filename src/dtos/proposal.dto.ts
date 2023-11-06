@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   ArrayUnique,
@@ -32,17 +32,17 @@ export class createdProposalDto {
   dao_id: string;
 
   @IsNotEmpty()
-  @IsDate()
+  @Type(() => Date)
   start_time: Date;
 
   @IsNotEmpty()
-  @IsDate()
+  @Type(() => Date)
   end_time: Date;
 
-  @IsNotEmpty()
-  @IsArray()
-  @ArrayNotEmpty()
-  @ArrayUnique()
+  // @IsNotEmpty()
+  // @IsArray()
+  // @ArrayNotEmpty()
+  // @ArrayUnique()
   @Transform(({ value }) => value || ['Yes', 'No'], { toClassOnly: true })
   voting_options: string[];
 }
@@ -61,16 +61,21 @@ export class UpdateProposalDto {
   description: string;
 
   @IsNotEmpty()
-  @IsDate()
+  @Type(() => Date)
   start_time: Date;
 
   @IsNotEmpty()
-  @IsDate()
+  @Type(() => Date)
   end_time: Date;
 
   @IsArray()
-  @ArrayNotEmpty()
   @ArrayUnique()
-  @Transform(({ value }) => value || ['Yes', 'No'], { toClassOnly: true })
+  @Transform(
+    ({ value }) => {
+      console.log('transform decorator', value);
+      Array.isArray(value) && value.length === 0 ? ['Yes', 'No'] : value;
+    },
+    { toClassOnly: true },
+  )
   voting_options: string[];
 }
