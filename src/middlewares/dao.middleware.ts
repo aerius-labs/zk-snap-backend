@@ -67,7 +67,7 @@ export class DaoMiddleware implements NestMiddleware {
         HttpStatus.BAD_REQUEST,
       );
     }
-  
+
     for (const member of obj.members) {
       if (!this.isHexString(member)) {
         throw new HttpException(

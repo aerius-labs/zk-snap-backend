@@ -18,5 +18,11 @@ export class Dao {
   logo: string;
 
   @Column()
+  membersRoot: string;
+
+  @Column()
   members: string[];
+
+  @Column()
+  membersTree: string;
 }

@@ -11,8 +11,9 @@ import { join } from 'path';
 import { DaoModule } from './modules/dao.module';
 import { DaoMiddleware } from './middlewares/dao.middleware';
 
-import {ProposalModule} from './modules/proposal.module';
-import {ProposalMiddleware} from './middlewares/proposal.middleware'
+import { ProposalModule } from './modules/proposal.module';
+import { ProposalMiddleware } from './middlewares/proposal.middleware';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +26,7 @@ import {ProposalMiddleware} from './middlewares/proposal.middleware'
       entities: [join(__dirname, '**', '**.entity.{ts,js}')],
       synchronize: true,
     }),
+    EventEmitterModule.forRoot(),
     DaoModule,
     ProposalModule,
   ],
@@ -39,6 +41,10 @@ export class AppModule implements NestModule {
     });
     consumer.apply(ProposalMiddleware).forRoutes({
       path: 'proposal',
+      method: RequestMethod.POST,
+    });
+    consumer.apply(ProposalMiddleware).forRoutes({
+      path: 'dao/proposal',
       method: RequestMethod.POST,
     });
   }

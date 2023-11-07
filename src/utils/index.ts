@@ -22,3 +22,21 @@ export const isKeccakHash = (hash: string) => {
 
   return true;
 };
+
+export const getRandomNBitNumber = (bits: number) => {
+  let randomBigInt = BigInt(0);
+  for (let i = 0; i < bits; i++) {
+    randomBigInt |= BigInt(Math.floor(Math.random() * 2)) << BigInt(i);
+  }
+  return randomBigInt;
+};
+
+export const calculateActualResults = (
+  currentYes: number,
+  currentNo: number,
+) => {
+  const actualYes = Math.floor((2 * currentYes - currentNo - 1) / 3);
+  const actualNo = Math.floor((2 * currentNo - currentYes - 1) / 3);
+
+  return [actualYes, actualNo];
+};

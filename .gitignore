@@ -37,3 +37,6 @@ lerna-debug.log*
 # misc
 .env
 node_modules
+
+# dump
+*.dump
