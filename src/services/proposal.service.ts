@@ -15,8 +15,6 @@ import {
 } from '../dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ZkProof } from '../entities/zk-proof.entity';
-import { Dao } from '../entities/dao.entity';
 import * as schedule from 'node-schedule';
 import { testnet } from '../utils/drand-client';
 import { parseBigInt } from '../utils/big-int-string';
@@ -27,12 +25,8 @@ import { v4 as uuid } from 'uuid';
 @Injectable()
 export class ProposalService {
   constructor(
-    @InjectRepository(Dao)
-    private daoRepository: Repository<Dao>,
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
-    @InjectRepository(ZkProof)
-    private zkProofRepository: Repository<ZkProof>,
     private encryptionService: EncryptionService,
     private eventEmitter: EventEmitter2,
   ) {}
