@@ -164,11 +164,18 @@ export class ProposalService {
     }
   }
 
-  findOne(id: string): Promise<Proposal> {
+  async findOne(id: string): Promise<Proposal> {
     const options: FindOneOptions<Proposal> = {
       where: { id },
     };
-    return this.proposalRepository.findOne(options);
+
+    const proposal = await this.proposalRepository.findOne(options);
+
+    if (!proposal) {
+      throw new NotFoundException(`Proposal with id ${id} not found`);
+    }
+
+    return proposal;
   }
 
   async findByDaolId(dao_id: string): Promise<Proposal[]> {
@@ -181,16 +188,19 @@ export class ProposalService {
     return proposals;
   }
 
-  async update(id: string, data: UpdateProposalDto): Promise<void> {
-    // TODO :- check if this ID exist or not
+  async update(id: string, data: UpdateProposalDto): Promise<Proposal> {
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
-    try {
-      await this.proposalRepository.update(options, data);
-    } catch (error) {
-      throw new BadRequestException('Failed to update Proposal');
-    }
+    
+      const updateResult = await this.proposalRepository.update(options, data);
+      console.log('updateResult', updateResult.affected);
+      console.log(updateResult.affected === 0)
+      if (updateResult.affected === 0) {
+        throw new NotFoundException(`Proposal with id ${id} not found`);
+      }
+      const updatedProposal = await this.findOne(id);
+      return updatedProposal;  
   }
 
   async remove(id: string): Promise<void> {
