@@ -204,7 +204,11 @@ export class ProposalService {
   }
 
   async remove(id: string): Promise<void> {
-    // TODO :- check if this ID exist or not
+    try {
+      await this.findOne(id);
+    } catch (error) {
+      throw new NotFoundException(`Proposal with id ${id} not found`);
+    }
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
