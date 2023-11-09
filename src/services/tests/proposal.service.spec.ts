@@ -316,5 +316,43 @@ describe('ProposalService', () => {
 
   });
 
-  describe('remove', () => {});
+  describe('remove', () => {
+    it('should remove a proposal', async () => {
+      const mockProposal: Proposal = {
+        _id: new ObjectId(),
+        id: '1',
+        creator: 'creatorId',
+        title: 'proposalTitle',
+        description: 'proposalDescription',
+        dao_id: 'daoId',
+        start_time: new Date(Date.now() + 100001),
+        end_time: new Date(Date.now() + 1000000),
+        voting_options: ['yes', 'no'],
+        encryption_key_pair: {
+          public_key: 'publicKey',
+          private_key: 'privateKey',
+        },
+        status: 'NOT_STARTED',
+        result: [],
+        zk_proof: null,
+      };
+
+      jest.spyOn(proposalRepository, 'findOne').mockResolvedValue(mockProposal);
+      jest.spyOn(proposalRepository, 'delete').mockResolvedValue({ affected: 1 } as any);
+
+      await proposalService.remove('1');
+
+      expect(proposalRepository.delete).toHaveBeenCalledWith({ id: '1' });
+    });
+
+    it('should throw an error if proposal not found', async () => {
+      jest.spyOn(proposalRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(proposalRepository, 'delete').mockResolvedValue({ affected: 0 } as any);
+
+      const id = '1';
+      await expect(proposalService.remove(id)).rejects.toThrow(
+        new NotFoundException(`Proposal with id ${id} not found`),
+      );
+    });
+  });
 });
