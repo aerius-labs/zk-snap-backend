@@ -9,10 +9,9 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 
 import { DaoModule } from './modules/dao.module';
-import { DaoMiddleware } from './middlewares/dao.middleware';
+
 
 import { ProposalModule } from './modules/proposal.module';
-import { ProposalMiddleware } from './middlewares/proposal.middleware';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
