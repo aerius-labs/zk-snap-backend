@@ -21,6 +21,7 @@ import { parseBigInt } from '../utils/big-int-string';
 import { PrivateKey, PublicKey } from 'paillier-bigint';
 import { calculateActualResults } from '../utils';
 import { v4 as uuid } from 'uuid';
+import { Worker } from 'worker_threads';
 
 @Injectable()
 export class ProposalService {
@@ -75,6 +76,10 @@ export class ProposalService {
       this.scheduleEvent(createdProposal.id, createdProposal.end_time);
 
       this.eventEmitter.emit('proposal.created', createdProposal.id);
+
+      const worker = new Worker('src/Workers/proposal.worker.ts')
+      worker.postMessage({type: 'Proposal created', value: createdProposal})
+      console.log(`Worker created for Prposal ${createdProposal.id}`);
 
       console.log('Proposal created');
       return createdProposal;
