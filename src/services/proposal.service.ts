@@ -22,6 +22,7 @@ import { PrivateKey, PublicKey } from 'paillier-bigint';
 import { calculateActualResults } from '../utils';
 import { v4 as uuid } from 'uuid';
 import { Worker } from 'worker_threads';
+const path = require('path');
 
 @Injectable()
 export class ProposalService {
@@ -33,7 +34,7 @@ export class ProposalService {
   ) {}
 
   // TODO - No two proposals should have eqaul title
-  async create(data: NewProposalDto): Promise<Proposal> {
+  async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
     data.start_time = new Date(data.start_time);
     data.end_time = new Date(data.end_time);
     if (data.start_time instanceof Date && data.end_time instanceof Date) {
@@ -75,15 +76,15 @@ export class ProposalService {
 
       this.scheduleEvent(createdProposal.id, createdProposal.end_time);
 
-      this.eventEmitter.emit('proposal.created', createdProposal.id);
+      // TODO: remove this once the worker is implemented
+      // this.eventEmitter.emit('proposal.created', createdProposal.id);
 
-      const worker = new Worker('src/Workers/proposal.worker.ts')
-      worker.postMessage({type: 'Proposal created', value: createdProposal})
-      console.log(`Worker created for Prposal ${createdProposal.id}`);
+      this.scehduleEventStart(createdProposal, createdProposal.start_time, membersRoot);
 
       console.log('Proposal created');
       return createdProposal;
     } catch (error) {
+      console.log(error);
       throw new BadRequestException('Failed to create proposal');
     }
   }
@@ -92,6 +93,31 @@ export class ProposalService {
     schedule.scheduleJob(proposalId, endTime, () => {
       this.handleEventEnd(proposalId);
     });
+  }
+
+  private scehduleEventStart(proposal: Proposal, startTime: Date, membersRoot: string): void {
+    schedule.scheduleJob(startTime, () => {
+      this.handleEventStart(proposal, membersRoot);
+    });
+  }
+
+  private async handleEventStart(proposal: Proposal, membersRoot: string): Promise<void> {
+    try {
+      const workerPath = path.join(__dirname, '../Workers/proposal.worker.js');
+      const worker = new Worker(workerPath);
+      worker.postMessage({
+        type: 'PROPOSAL_CREATED',
+        value: {
+          proposalIdStr: proposal.id,
+          membersRootStr: membersRoot,
+          encryptionPublicKeyStr: proposal.encryption_key_pair.public_key,
+        }
+      });
+      console.log(`Worker created for Proposal ${proposal.id}`);
+    } catch (error) {
+      console.log('worker creation error', error);
+      throw new BadRequestException('Failed to create worker');
+    }
   }
 
   private async handleEventEnd(proposalId: string): Promise<void> {
