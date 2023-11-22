@@ -63,7 +63,7 @@ export class DaoController {
         `Creator ${newProposal.creator} is not a member of Dao with ID ${newProposal.dao_id}`,
       );
     }
-    return await this.proposalService.create(newProposal);
+    return await this.proposalService.create(newProposal, dao.membersRoot);
   }
 
   @Get()
