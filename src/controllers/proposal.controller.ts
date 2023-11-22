@@ -34,11 +34,6 @@ export class ProposalController {
     private readonly rabbitMQService: RabbitMQService,
   ) {}
 
-  @Post()
-  async create(@Body() createProposalDto: NewProposalDto) {
-    return this.proposalService.create(createProposalDto);
-  }
-
   @Get()
   findAll() {
     return this.proposalService.findAll();
