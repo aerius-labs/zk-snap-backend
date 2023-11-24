@@ -22,6 +22,11 @@ import { PrivateKey, PublicKey } from 'paillier-bigint';
 import { calculateActualResults } from '../utils';
 import { v4 as uuid } from 'uuid';
 import { Worker } from 'worker_threads';
+import { generateAggregatorBaseProofWitness } from 'src/utils/generate-witness';
+import {
+  WithnessToAggregator,
+  WitnessGenerationData,
+} from 'src/dtos/baseProofGeneration.dto';
 const path = require('path');
 
 @Injectable()
@@ -79,7 +84,7 @@ export class ProposalService {
       // TODO: remove this once the worker is implemented
       // this.eventEmitter.emit('proposal.created', createdProposal.id);
 
-      this.scehduleEventStart(createdProposal, createdProposal.start_time, membersRoot);
+      this.handleWorker(createdProposal, membersRoot);
 
       console.log('Proposal created');
       return createdProposal;
@@ -95,23 +100,27 @@ export class ProposalService {
     });
   }
 
-  private scehduleEventStart(proposal: Proposal, startTime: Date, membersRoot: string): void {
-    schedule.scheduleJob(startTime, () => {
-      this.handleEventStart(proposal, membersRoot);
-    });
-  }
-
-  private async handleEventStart(proposal: Proposal, membersRoot: string): Promise<void> {
+  private async handleWorker(
+    proposal: Proposal,
+    membersRoot: string,
+  ): Promise<void> {
     try {
       const workerPath = path.join(__dirname, '../Workers/proposal.worker.js');
-      const worker = new Worker(workerPath);
+      const worker = new Worker(workerPath, {
+        workerData: {
+          aggregatorURL: process.env.AGGREGATOR_URL,
+        },
+      });
+      const proposalData = new WitnessGenerationData(
+        proposal.id,
+        membersRoot,
+        proposal.encryption_key_pair.public_key,
+      );
+      const witness = await generateAggregatorBaseProofWitness(proposalData);
+      const witnessData = new WithnessToAggregator(proposal.id, witness);
       worker.postMessage({
         type: 'PROPOSAL_CREATED',
-        value: {
-          proposalIdStr: proposal.id,
-          membersRootStr: membersRoot,
-          encryptionPublicKeyStr: proposal.encryption_key_pair.public_key,
-        }
+        value: witnessData,
       });
       console.log(`Worker created for Proposal ${proposal.id}`);
     } catch (error) {
@@ -223,15 +232,15 @@ export class ProposalService {
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
-    
-      const updateResult = await this.proposalRepository.update(options, data);
-      console.log('updateResult', updateResult.affected);
-      console.log(updateResult.affected === 0)
-      if (updateResult.affected === 0) {
-        throw new NotFoundException(`Proposal with id ${id} not found`);
-      }
-      const updatedProposal = await this.findOne(id);
-      return updatedProposal;  
+
+    const updateResult = await this.proposalRepository.update(options, data);
+    console.log('updateResult', updateResult.affected);
+    console.log(updateResult.affected === 0);
+    if (updateResult.affected === 0) {
+      throw new NotFoundException(`Proposal with id ${id} not found`);
+    }
+    const updatedProposal = await this.findOne(id);
+    return updatedProposal;
   }
 
   async remove(id: string): Promise<void> {
