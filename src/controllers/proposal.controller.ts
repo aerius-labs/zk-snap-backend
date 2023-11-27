@@ -7,6 +7,7 @@ import {
   Delete,
   Body,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
 import {
@@ -99,13 +100,10 @@ export class ProposalController {
     // TODO - should only register vote when proposal is active
 
     if (!voteProof) {
-      throw new NotFoundException('Vote proof not found');
+      throw new BadRequestException('Vote proof not found');
     }
 
-    await this.rabbitMQService.sendToQueue({
-      voteProof,
-      proposalId: id,
-    });
+    await this.proposalService.vote(id, voteProof);
     console.log('vote sent to queue');
 
     await this.generateAggregatorRecursiveProofWitness();
