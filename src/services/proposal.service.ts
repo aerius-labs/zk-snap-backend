@@ -37,6 +37,8 @@ export class ProposalService {
     private encryptionService: EncryptionService,
     private eventEmitter: EventEmitter2,
   ) {}
+  
+  workers: Map<string, Worker> = new Map();
 
   // TODO - No two proposals should have eqaul title
   async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
@@ -111,6 +113,7 @@ export class ProposalService {
           aggregatorURL: process.env.AGGREGATOR_URL,
         },
       });
+      this.workers.set(proposal.id, worker);
       const proposalData = new WitnessGenerationData(
         proposal.id,
         membersRoot,
@@ -152,6 +155,34 @@ export class ProposalService {
       throw new BadRequestException('Failed to update Proposal');
     }
   }
+
+  async vote(proposalId: string, vote: string): Promise<void> {
+    const proposal = await this.findOne(proposalId);
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+    if (proposal.zk_proof === null) {
+      throw new HttpException(
+        'Zk proof not found for the given proposal',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    // TODO - check if proposal is finished or not
+
+    const voteProof = {
+      proposalId,
+      vote,
+    };
+    const worker = this.workers.get(proposalId);
+    if (!worker) {
+      throw new NotFoundException('Worker not found');
+    }
+    worker.postMessage({
+      type: 'USER_VOTED',
+      data: voteProof,
+    });    
+  }
+
 
   async revealVote(id: string): Promise<string[]> {
     const proposal = await this.findOne(id);
