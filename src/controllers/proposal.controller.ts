@@ -6,6 +6,7 @@ import {
   Patch,
   Delete,
   Body,
+  UsePipes,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { HttpService } from '@nestjs/axios';
 import { ZkProof } from 'src/entities/zk-proof.entity';
 import { EncryptionService } from '../services/encryption.service';
 import { RabbitMQService } from '../services/rabbitmq.service';
+import { ValidationPipe } from '../pipes/create-dao.pipe';
 
 @Controller('proposal')
 export class ProposalController {
@@ -34,6 +36,23 @@ export class ProposalController {
     private readonly encryptionService: EncryptionService,
     private readonly rabbitMQService: RabbitMQService,
   ) {}
+
+  @Post()
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async createProposal(@Body() newProposal: NewProposalDto) {
+    const dao = await this.daoService.findOne(newProposal.dao_id);
+    if (!dao) {
+      throw new NotFoundException(
+        `Dao with ID ${newProposal.dao_id} does not exist`,
+      );
+    }
+    if (!dao.members.includes(newProposal.creator)) {
+      throw new BadRequestException(
+        `Creator ${newProposal.creator} is not a member of Dao with ID ${newProposal.dao_id}`,
+      );
+    }
+    return await this.proposalService.create(newProposal, dao.membersRoot);
+  }
 
   @Get()
   findAll() {

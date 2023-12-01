@@ -49,23 +49,6 @@ export class DaoController {
     return transformedDaos;
   }
 
-  @Post('proposal')
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async createProposal(@Body() newProposal: NewProposalDto) {
-    const dao = await this.daoService.findOne(newProposal.dao_id);
-    if (!dao) {
-      throw new NotFoundException(
-        `Dao with ID ${newProposal.dao_id} does not exist`,
-      );
-    }
-    if (!dao.members.includes(newProposal.creator)) {
-      throw new BadRequestException(
-        `Creator ${newProposal.creator} is not a member of Dao with ID ${newProposal.dao_id}`,
-      );
-    }
-    return await this.proposalService.create(newProposal, dao.membersRoot);
-  }
-
   @Get()
   findAll() {
     return this.daoService.findAll();
