@@ -39,6 +39,8 @@ export class ProposalService {
   ) {}
   
   workers: Map<string, Worker> = new Map();
+  // Flag to check if aggregator is ready to receive proof
+  aggregatorFlags: Map<string, boolean> = new Map();
 
   // TODO - No two proposals should have eqaul title
   async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
@@ -121,6 +123,7 @@ export class ProposalService {
       );
       const witness = await generateAggregatorBaseProofWitness(proposalData);
       const witnessData = new WithnessToAggregator(proposal.id, witness);
+      this.aggregatorFlags.set(proposal.id, false);
       worker.postMessage({
         type: 'PROPOSAL_CREATED',
         value: witnessData,
@@ -300,6 +303,7 @@ export class ProposalService {
     if (!updatedProposal) {
       throw new NotFoundException('Proposal not found');
     }
+    this.aggregatorFlags.set(proof.proposalId, true);
     this.eventEmitter.emit('proof.stored');
     console.log('Proof stored');
   }
