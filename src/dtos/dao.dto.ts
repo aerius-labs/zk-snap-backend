@@ -13,7 +13,7 @@ export class CreateDaoDto {
   name: string;
 
   @IsString()
-  @Length(1, 200)
+  @Length(10, 200)
   description: string;
 
   @IsOptional()
