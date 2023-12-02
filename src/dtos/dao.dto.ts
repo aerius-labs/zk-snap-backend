@@ -9,7 +9,7 @@ import {
 
 export class CreateDaoDto {
   @IsString()
-  @Length(1, 50)
+  @Length(3, 50)
   name: string;
 
   @IsString()
