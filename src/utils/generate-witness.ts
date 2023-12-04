@@ -1,6 +1,9 @@
 import { PublicKey } from 'paillier-bigint';
 import { WitnessGenerationData } from 'src/dtos/baseProofGeneration.dto';
 import { getRandomNBitNumber } from 'src/utils';
+import { ZkProof } from 'src/entities/zk-proof.entity';
+import * as paillierBigint from 'paillier-bigint';
+
 
 export async function generateAggregatorBaseProofWitness(
   proposalData: WitnessGenerationData,
@@ -39,4 +42,49 @@ export async function generateAggregatorBaseProofWitness(
     console.error('Error generating Aggregator Base Proof Witness:', error);
     throw error;
   }
+}
+
+export async function aggregateVote(
+  proposalData: WitnessGenerationData,
+  userProof: ZkProof,
+  earlierProof: ZkProof,
+): Promise<string> {
+  try {
+    const witness: any = {};
+    witness.encryptionPublicKeyStr = proposalData.encryptionPublicKeyStr;
+    witness.proposalIdStr = proposalData.proposalIdStr;
+    witness.membersRootStr = proposalData.membersRootStr;
+    witness.nonceStr = '0';
+    witness.oldVoteCountStr = [
+      earlierProof.publicInput[earlierProof.publicInput.length - 2],
+      earlierProof.publicInput[earlierProof.publicInput.length - 1],
+    ];
+
+    witness.newVoteCountStr = [];
+    for (let i = 0; i < 2; i++) {
+      witness.newVoteCountStr.push(
+        await addCipherTexts(
+          proposalData.encryptionPublicKeyStr,
+          userProof.publicInput[userProof.publicInput.length - 2 + i],
+          witness.oldVoteCountStr[i],
+        ),
+      );
+    }
+
+    return JSON.stringify(witness);
+  } catch (error) {
+    console.error('Error generating Aggregate vote Witness:', error);
+    throw error;
+  }
+}
+
+async function addCipherTexts(pubKey: string, c1: string, c2: string) {
+  const pubJson = JSON.parse(pubKey);
+  const pub = new paillierBigint.PublicKey(
+    BigInt(pubJson.n),
+    BigInt(pubJson.g),
+  );
+
+  const c = pub.addition(...[BigInt(c1), BigInt(c2)]);
+  return c.toString();
 }
