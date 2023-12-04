@@ -141,8 +141,6 @@ export class ProposalController {
 
     await this.proposalService.vote(id, userProof, dao.membersRoot);
     console.log('vote sent to queue');
-
-    await this.generateAggregatorRecursiveProofWitness();
   }
 
   // TODO - remove this is not needed
@@ -172,17 +170,21 @@ export class ProposalController {
   }
 
   @OnEvent('proof.stored')
-  async generateAggregatorRecursiveProofWitness() {
-    const message =
-      await this.rabbitMQService.consumeLatestMessage('voteQueue');
-    if (!message) {
-      console.log('No message in queue');
-      return;
+  async generateAggregatorRecursiveProofWitness(payload: string) {
+    const proposal = await this.proposalService.findOne(payload);
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
     }
-    const parsed = JSON.parse(message);
-    const earlierProof = (await this.proposalService.findOne(parsed.proposalId))
-      .zk_proof;
-    await this.aggregateVote(parsed.proposalId, parsed.voteProof, earlierProof);
+
+    const dao = await this.daoService.findOne(proposal.dao_id);
+    if (!dao) {
+      throw new NotFoundException('DAO not found for the given proposal');
+    }
+
+    await this.proposalService.consumeUserProof(
+      proposal,
+      dao.membersRoot,
+    )
   }
 
   // TODO - Needs to be trustless.
