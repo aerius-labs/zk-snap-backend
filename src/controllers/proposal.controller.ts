@@ -119,15 +119,33 @@ export class ProposalController {
     // TODO - should only register vote when proposal is active
 
     if (!voteProof) {
-      throw new BadRequestException('Vote proof not found');
+      throw new NotFoundException('Vote proof not found');
     }
 
-    await this.proposalService.vote(id, voteProof);
+    const proposal = await this.proposalService.findOne(id);
+
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+
+    const dao = await this.daoService.findOne(proposal.dao_id);
+
+    if (!dao) {
+      throw new NotFoundException('DAO not found for the given proposal');
+    }
+
+    const userProof = JSON.parse(voteProof);
+    if (!(userProof instanceof ZkProof)) {
+      throw new Error('Invalid vote proof');
+    }
+
+    await this.proposalService.vote(id, userProof, dao.membersRoot);
     console.log('vote sent to queue');
 
     await this.generateAggregatorRecursiveProofWitness();
   }
 
+  // TODO - remove this is not needed
   @OnEvent('proposal.created')
   async generateAggregatorBaseProof(proposalId: string) {
     const proposal = await this.proposalService.findOne(proposalId);
