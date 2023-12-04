@@ -58,4 +58,12 @@ export class Proposal {
 
   @Column(() => ZkProof)
   zk_proof: ZkProof;
+
+  @Column()
+  user_proof_queue: Vote[] = [];
 }
+
+export type Vote = {
+  proposalId: string;
+  userProof: ZkProof;
+};
