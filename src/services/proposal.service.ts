@@ -194,8 +194,6 @@ export class ProposalService {
       }
       return 
     }
-    // TODO - if aggregator is ready to receive proof then send proof to worker and update flag to false.
-    // TODO - if aggregator submits proof then before updating flag to true, if queue is not-empty than consume the top element of queue and send it to worker else set flag to true.
     if (proposal.zk_proof === null) {
       throw new HttpException(
         'Zk proof not found for the given proposal',
@@ -225,6 +223,38 @@ export class ProposalService {
     });
   }
 
+  async consumeUserProof(proposal: Proposal, memberRoot: string) {
+    const worker = this.workers.get(proposal.id);
+      if (!worker) {
+        throw new NotFoundException('Worker not found');
+      }
+    if (proposal.user_proof_queue.length === 0 && proposal.end_time < new Date(Date.now())) {
+      console.log('Proposal ended');
+      console.log('terminating worker')
+      worker.terminate();
+    }
+    if (proposal.user_proof_queue.length !== 0) {
+      const userProof = proposal.user_proof_queue[0];
+      proposal.user_proof_queue.shift();
+      const proposalData = new WitnessGenerationData(
+        proposal.id,
+        memberRoot,
+        proposal.encryption_key_pair.public_key,
+      );
+      const voteProof = {
+        proposalData,
+        vote: userProof.userProof,
+        zkProof: proposal.zk_proof, 
+      };
+      worker.postMessage({
+        type: 'USER_VOTED',
+        value: voteProof,
+      });
+    }
+    if (proposal.user_proof_queue.length === 0) {
+      this.aggregatorFlags.set(proposal.id, true);
+    }
+  } 
   async revealVote(id: string): Promise<string[]> {
     const proposal = await this.findOne(id);
     if (!proposal) {
@@ -342,7 +372,7 @@ export class ProposalService {
       throw new NotFoundException('Proposal not found');
     }
     this.aggregatorFlags.set(proof.proposalId, true);
-    this.eventEmitter.emit('proof.stored');
+    this.eventEmitter.emit('proof.stored', proof.proposalId);
     console.log('Proof stored');
   }
 }
