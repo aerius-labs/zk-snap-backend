@@ -8,24 +8,25 @@ export async function generateAggregatorBaseProof(
   try {
     const aggBaseProof = withness.witness;
 
-    postAggregatorData(aggBaseProof, withness.proposalIdStr, aggregatorUrl);
+    postAggregatorData(aggBaseProof, withness.proposalIdStr, aggregatorUrl, 'base');
     console.log('Aggregator Base Proof generated successfully');
   } catch (error) {
     console.error('Error generating Aggregator Base Proof:', error);
   }
 }
 
-async function postAggregatorData(
+export async function postAggregatorData(
   aggBaseProof: string,
   proposalId: string,
   aggregatorUrl: string,
+  type: string,
 ) {
   // TODO:- add mirco service here
   try {
     const response = await axios.post(
       aggregatorUrl,
       {
-        type: 'base',
+        type: type,
         witness: aggBaseProof,
         proposalId: proposalId,
       },
