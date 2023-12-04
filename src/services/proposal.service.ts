@@ -8,7 +8,7 @@ import {
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Proposal } from '../entities/proposal.entity';
+import { Proposal, Vote} from '../entities/proposal.entity';
 import {
   createdProposalDto as NewProposalDto,
   UpdateProposalDto,
@@ -27,6 +27,7 @@ import {
   WithnessToAggregator,
   WitnessGenerationData,
 } from 'src/dtos/baseProofGeneration.dto';
+import { ZkProof } from 'src/entities/zk-proof.entity';
 const path = require('path');
 
 @Injectable()
@@ -37,7 +38,7 @@ export class ProposalService {
     private encryptionService: EncryptionService,
     private eventEmitter: EventEmitter2,
   ) {}
-  
+
   workers: Map<string, Worker> = new Map();
   // Flag to check if aggregator is ready to receive proof
   aggregatorFlags: Map<string, boolean> = new Map();
@@ -159,33 +160,70 @@ export class ProposalService {
     }
   }
 
-  async vote(proposalId: string, vote: string): Promise<void> {
+  async vote(
+    proposalId: string,
+    vote: ZkProof,
+    membersRoot: string,
+  ): Promise<void> {
+    
     const proposal = await this.findOne(proposalId);
+    const userProofQueue = proposal.user_proof_queue;
     if (!proposal) {
       throw new NotFoundException('Proposal not found');
     }
+
+    // TODO - check if proposal is finished or not
+    if (proposal.end_time < new Date(Date.now())) {
+      throw new HttpException(
+        'Proposal has already ended',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (this.aggregatorFlags.get(proposalId) === false) {
+      const newVote : Vote = {proposalId, userProof: vote};
+      userProofQueue.push(newVote);
+      proposal.user_proof_queue = userProofQueue;
+      const options: FindOptionsWhere<Proposal> = {
+        id: proposalId,
+      };
+      try {
+        await this.proposalRepository.update(options, proposal);
+      } catch (error) {
+        throw new BadRequestException('Failed to update Proposal');
+      }
+      return 
+    }
+    // TODO - if aggregator is ready to receive proof then send proof to worker and update flag to false.
+    // TODO - if aggregator submits proof then before updating flag to true, if queue is not-empty than consume the top element of queue and send it to worker else set flag to true.
     if (proposal.zk_proof === null) {
       throw new HttpException(
         'Zk proof not found for the given proposal',
         HttpStatus.NOT_FOUND,
       );
     }
-    // TODO - check if proposal is finished or not
+
+    const proposalData = new WitnessGenerationData(
+      proposal.id,
+      membersRoot,
+      proposal.encryption_key_pair.public_key,
+    );
 
     const voteProof = {
-      proposalId,
+      proposalData,
       vote,
+      zkProof: proposal.zk_proof,
     };
+
     const worker = this.workers.get(proposalId);
     if (!worker) {
       throw new NotFoundException('Worker not found');
     }
     worker.postMessage({
       type: 'USER_VOTED',
-      data: voteProof,
-    });    
+      value: voteProof,
+    });
   }
-
 
   async revealVote(id: string): Promise<string[]> {
     const proposal = await this.findOne(id);
