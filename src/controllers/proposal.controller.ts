@@ -134,12 +134,7 @@ export class ProposalController {
       throw new NotFoundException('DAO not found for the given proposal');
     }
 
-    const userProof = JSON.parse(voteProof);
-    if (!(userProof instanceof ZkProof)) {
-      throw new Error('Invalid vote proof');
-    }
-
-    await this.proposalService.vote(id, userProof, dao.membersRoot);
+    await this.proposalService.vote(id, voteProof, dao.membersRoot);
     console.log('vote sent to queue');
   }
 
