@@ -194,8 +194,6 @@ export class ProposalService {
     };
     
       const updateResult = await this.proposalRepository.update(options, data);
-      console.log('updateResult', updateResult.affected);
-      console.log(updateResult.affected === 0)
       if (updateResult.affected === 0) {
         throw new NotFoundException(`Proposal with id ${id} not found`);
       }
