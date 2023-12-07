@@ -14,7 +14,7 @@ import { DaoService } from '../services/dao.service';
 import { CreateDaoDto, UpdateDaoDto } from '../dtos/dao.dto';
 import { Dao } from '../entities/dao.entity';
 import { extractDaoDetails } from '../utils/filter';
-import { createdProposalDto as NewProposalDto } from '../dtos/proposal.dto';
+import { createProposalDto as NewProposalDto } from '../dtos/proposal.dto';
 import { ProposalService } from '../services/proposal.service';
 import { ValidationPipe } from '../pipes/create-dao.pipe';
 @Controller('dao')

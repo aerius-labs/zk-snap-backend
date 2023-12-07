@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Proposal } from '../entities/proposal.entity';
 import {
-  createdProposalDto as NewProposalDto,
+  createProposalDto as NewProposalDto,
   UpdateProposalDto,
 } from '../dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
