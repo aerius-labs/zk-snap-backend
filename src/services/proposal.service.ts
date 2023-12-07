@@ -156,7 +156,7 @@ export class ProposalService {
     return decrypted_votes;
   }
 
-  findAll(): Promise<Proposal[]> {
+  async findAll(): Promise<Proposal[]> {
     try {
       return this.proposalRepository.find();
     } catch (error) {
