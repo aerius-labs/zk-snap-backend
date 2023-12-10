@@ -9,17 +9,20 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
-import { NewProposalDto, UpdateProposalDto } from '../dtos/proposal.dto';
+import {
+  createProposalDto as NewProposalDto,
+  UpdateProposalDto,
+} from '../dtos/proposal.dto';
 import { OnEvent } from '@nestjs/event-emitter';
-import { Proposal } from 'src/entities/proposal.entity';
-import { DaoService } from 'src/services/dao.service';
+import { Proposal } from '../entities/proposal.entity';
+import { DaoService } from '../services/dao.service';
 import { PublicKey } from 'paillier-bigint';
-import { getRandomNBitNumber } from 'src/utils';
+import { getRandomNBitNumber } from '../utils';
 import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ZkProof } from 'src/entities/zk-proof.entity';
-import { EncryptionService } from 'src/services/encryption.service';
-import { RabbitMQService } from 'src/services/rabbitmq.service';
+import { EncryptionService } from '../services/encryption.service';
+import { RabbitMQService } from '../services/rabbitmq.service';
 
 @Controller('proposal')
 export class ProposalController {

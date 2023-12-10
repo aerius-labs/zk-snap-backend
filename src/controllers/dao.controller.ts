@@ -6,22 +6,17 @@ import {
   Patch,
   Param,
   Delete,
-  Inject,
   BadRequestException,
+  UsePipes,
   NotFoundException,
-  Res,
-  HttpStatus,
 } from '@nestjs/common';
 import { DaoService } from '../services/dao.service';
-import { NewDaoDto, UpdateDaoDto } from 'src/dtos/dao.dto';
-import { Dao } from 'src/entities/dao.entity';
-import { extractDaoDetails } from 'src/utils/filter';
-import { ProposalController } from './proposal.controller';
-import { NewProposalDto } from 'src/dtos/proposal.dto';
-import { ProposalService } from 'src/services/proposal.service';
-import { EncryptionService } from 'src/services/encryption.service';
-import { createMerkleProof, createMerkleRoot } from 'src/utils/merkleTreeUtils';
-import { Field, Poseidon, PublicKey } from 'o1js';
+import { CreateDaoDto, UpdateDaoDto } from '../dtos/dao.dto';
+import { Dao } from '../entities/dao.entity';
+import { extractDaoDetails } from '../utils/filter';
+import { createProposalDto as NewProposalDto } from '../dtos/proposal.dto';
+import { ProposalService } from '../services/proposal.service';
+import { ValidationPipe } from '../pipes/create-dao.pipe';
 @Controller('dao')
 export class DaoController {
   constructor(
@@ -30,13 +25,8 @@ export class DaoController {
   ) {}
 
   @Post()
-  async create(@Body() createDaoDto: NewDaoDto) {
-    if (!createDaoDto.members || createDaoDto.members.length === 0) {
-      throw new NotFoundException('DAO members list is empty');
-    }
-
-    const membersTree = createMerkleRoot(createDaoDto.members);
-    createDaoDto.membersRoot = membersTree.getRoot().toString();
+  @UsePipes(new ValidationPipe())
+  async create(@Body() createDaoDto: CreateDaoDto) {
     return await this.daoService.create(createDaoDto);
   }
 
@@ -44,36 +34,8 @@ export class DaoController {
   async getMerkleProof(
     @Param('daoId') daoId: string,
     @Param('memberPublicKey') memberPublicKey: string,
-    @Res() res,
   ) {
-    try {
-      const dao = await this.daoService.findOne(daoId);
-      if (!dao) {
-        throw new NotFoundException('DAO not found');
-      }
-
-      const memberIndex = dao.members.findIndex(
-        (member) => member === memberPublicKey,
-      );
-      if (memberIndex === -1) {
-        throw new NotFoundException('Member not found in DAO');
-      }
-
-      const merkleProof = createMerkleProof(dao.members, memberIndex);
-      try {
-        merkleProof
-          .calculateRoot(
-            Poseidon.hash([PublicKey.fromBase58(memberPublicKey).x]),
-          )
-          .assertEquals(Field(dao.membersRoot));
-      } catch (error) {
-        console.log(error);
-      }
-      const merkleProofStr = JSON.stringify(merkleProof.toJSON());
-      return res.status(HttpStatus.OK).json(merkleProofStr);
-    } catch (error) {
-      return res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
-    }
+    return await this.daoService.getMerkleProof(daoId, memberPublicKey);
   }
   @Get('info')
   async findInfoAllDao() {
@@ -88,10 +50,11 @@ export class DaoController {
   }
 
   @Post('proposal')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async createProposal(@Body() newProposal: NewProposalDto) {
     const dao = await this.daoService.findOne(newProposal.dao_id);
     if (!dao) {
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Dao with ID ${newProposal.dao_id} does not exist`,
       );
     }
@@ -116,6 +79,7 @@ export class DaoController {
   }
 
   @Patch(':id')
+  @UsePipes(new ValidationPipe())
   update(@Param('id') id: string, @Body() updateDaoDto: UpdateDaoDto) {
     return this.daoService.update(id, updateDaoDto);
   }

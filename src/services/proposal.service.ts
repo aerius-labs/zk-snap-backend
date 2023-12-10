@@ -7,41 +7,65 @@ import {
 } from '@nestjs/common';
 import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { v4 as uuid } from 'uuid';
 
 import { Proposal } from '../entities/proposal.entity';
-import { NewProposalDto, UpdateProposalDto } from 'src/dtos/proposal.dto';
+import {
+  createProposalDto as NewProposalDto,
+  UpdateProposalDto,
+} from '../dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ZkProof } from 'src/entities/zk-proof.entity';
-import { AggregatorProofInputs } from 'src/dtos/circuit.dto';
-import { Dao } from 'src/entities/dao.entity';
 import * as schedule from 'node-schedule';
-import { testnet } from 'src/utils/drand-client';
-import { parseBigInt } from 'src/utils/big-int-string';
+import { testnet } from '../utils/drand-client';
+import { parseBigInt } from '../utils/big-int-string';
 import { PrivateKey, PublicKey } from 'paillier-bigint';
-import { calculateActualResults } from 'src/utils';
+import { calculateActualResults } from '../utils';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class ProposalService {
   constructor(
-    @InjectRepository(Dao)
-    private daoRepository: Repository<Dao>,
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
-    @InjectRepository(ZkProof)
-    private zkProofRepository: Repository<ZkProof>,
     private encryptionService: EncryptionService,
     private eventEmitter: EventEmitter2,
   ) {}
 
   // TODO - No two proposals should have equal title
   async create(data: NewProposalDto): Promise<Proposal> {
+    data.start_time = new Date(data.start_time);
+    data.end_time = new Date(data.end_time);
+    if (data.start_time instanceof Date && data.end_time instanceof Date) {
+      const currentMillis = Date.now();
+      const startTimeMillis = new Date(data.start_time).getTime();
+      const endTimeMillis = new Date(data.end_time).getTime();
+
+      if (startTimeMillis > endTimeMillis) {
+        throw new HttpException(
+          'end_time should be greater than the start_time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (startTimeMillis <= currentMillis || endTimeMillis <= currentMillis) {
+        throw new HttpException(
+          'start_time and end_time should be greater than the current date and time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      throw new HttpException(
+        'start_time and end_time should be valid date objects',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const enc = await this.encryptionService.generateEncryptedKeys(
       data.end_time,
     );
 
     let proposal = this.proposalRepository.create(data);
+    proposal.id = uuid();
     proposal.encryption_key_pair.public_key = enc.pub_key;
     proposal.encryption_key_pair.private_key = enc.pvt_key;
 
@@ -132,7 +156,7 @@ export class ProposalService {
     return decrypted_votes;
   }
 
-  findAll(): Promise<Proposal[]> {
+  async findAll(): Promise<Proposal[]> {
     try {
       return this.proposalRepository.find();
     } catch (error) {
@@ -140,11 +164,18 @@ export class ProposalService {
     }
   }
 
-  findOne(id: string): Promise<Proposal> {
+  async findOne(id: string): Promise<Proposal> {
     const options: FindOneOptions<Proposal> = {
       where: { id },
     };
-    return this.proposalRepository.findOne(options);
+
+    const proposal = await this.proposalRepository.findOne(options);
+
+    if (!proposal) {
+      throw new NotFoundException(`Proposal with id ${id} not found`);
+    }
+
+    return proposal;
   }
 
   async findByDaolId(dao_id: string): Promise<Proposal[]> {
@@ -157,20 +188,25 @@ export class ProposalService {
     return proposals;
   }
 
-  async update(id: string, data: UpdateProposalDto): Promise<void> {
-    // TODO :- check if this ID exist or not
+  async update(id: string, data: UpdateProposalDto): Promise<Proposal> {
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
-    try {
-      await this.proposalRepository.update(options, data);
-    } catch (error) {
-      throw new BadRequestException('Failed to update Proposal');
-    }
+    
+      const updateResult = await this.proposalRepository.update(options, data);
+      if (updateResult.affected === 0) {
+        throw new NotFoundException(`Proposal with id ${id} not found`);
+      }
+      const updatedProposal = await this.findOne(id);
+      return updatedProposal;  
   }
 
   async remove(id: string): Promise<void> {
-    // TODO :- check if this ID exist or not
+    try {
+      await this.findOne(id);
+    } catch (error) {
+      throw new NotFoundException(`Proposal with id ${id} not found`);
+    }
     const options: FindOptionsWhere<Proposal> = {
       id,
     };

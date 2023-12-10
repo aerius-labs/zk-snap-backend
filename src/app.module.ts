@@ -9,10 +9,9 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 
 import { DaoModule } from './modules/dao.module';
-import { DaoMiddleware } from './middlewares/dao.middleware';
+
 
 import { ProposalModule } from './modules/proposal.module';
-import { ProposalMiddleware } from './middlewares/proposal.middleware';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
@@ -34,18 +33,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
   providers: [],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(DaoMiddleware).forRoutes({
-      path: 'dao',
-      method: RequestMethod.POST,
-    });
-    consumer.apply(ProposalMiddleware).forRoutes({
-      path: 'proposal',
-      method: RequestMethod.POST,
-    });
-    consumer.apply(ProposalMiddleware).forRoutes({
-      path: 'dao/proposal',
-      method: RequestMethod.POST,
-    });
-  }
+  // This is only placeholder for now
+  configure(consumer: MiddlewareConsumer) {}
 }

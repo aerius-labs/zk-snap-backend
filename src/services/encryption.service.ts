@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as paillierBigint from 'paillier-bigint';
-import { stringifyBigInt } from 'src/utils/big-int-string';
-import { testnet } from 'src/utils/drand-client';
+import { stringifyBigInt } from '../utils/big-int-string';
+import { testnet } from '../utils/drand-client';
 import {
   HttpChainClient,
   roundAt,
