@@ -24,7 +24,6 @@ import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ZkProof } from 'src/entities/zk-proof.entity';
 import { EncryptionService } from '../services/encryption.service';
-import { RabbitMQService } from '../services/rabbitmq.service';
 import { ValidationPipe } from '../pipes/create-dao.pipe';
 
 @Controller('proposal')
@@ -34,7 +33,6 @@ export class ProposalController {
     private readonly daoService: DaoService,
     private readonly httpService: HttpService,
     private readonly encryptionService: EncryptionService,
-    private readonly rabbitMQService: RabbitMQService,
   ) {}
 
   @Post()

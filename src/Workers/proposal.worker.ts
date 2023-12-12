@@ -2,20 +2,7 @@ import { workerData } from 'worker_threads';
 import { generateAggregatorBaseProof, postAggregatorData } from './ProofGeneration/aggregatorBaseProofs';
 
 const { parentPort } = require('worker_threads');
-import { RabbitMQService } from '../services/rabbitmq.service';
 import { aggregateVote } from 'src/utils/generate-witness';
-
-// Initialize the RabbitMQService
-const rabbitMQService = new RabbitMQService();
-rabbitMQService
-  .onModuleInit()
-  .then(() => {
-    console.log('RabbitMQ Worker: Connected to RabbitMQ');
-  })
-  .catch((err) => {
-    console.error('RabbitMQ Worker: Failed to connect to RabbitMQ', err);
-    process.exit(1); // Exit if connection fails
-  });
 
 parentPort.on('message', async (message) => {
   console.log('message', message);
