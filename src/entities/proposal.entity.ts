@@ -42,8 +42,8 @@ export class Proposal {
   // TODO - Write this in more efficent way
   @Column(() => EncryptionKeyPair)
   encryption_key_pair: EncryptionKeyPair = {
-    public_key: '',
-    private_key: '',
+    public_key: null,
+    private_key: null,
   };
 
   @Column({

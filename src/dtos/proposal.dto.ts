@@ -9,7 +9,7 @@ import {
   Max,
   ValidateIf,
 } from 'class-validator';
-export class createdProposalDto {
+export class createProposalDto {
   @IsNotEmpty()
   @IsString()
   creator: string;
@@ -72,7 +72,6 @@ export class UpdateProposalDto {
   @ArrayUnique()
   @Transform(
     ({ value }) => {
-      console.log('transform decorator', value);
       Array.isArray(value) && value.length === 0 ? ['Yes', 'No'] : value;
     },
     { toClassOnly: true },

@@ -32,5 +32,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
   providers: [],
 })
 export class AppModule implements NestModule {
+  // This is only placeholder for now
   configure(consumer: MiddlewareConsumer) {}
 }

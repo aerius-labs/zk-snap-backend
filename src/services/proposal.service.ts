@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Proposal } from '../entities/proposal.entity';
 import {
-  createdProposalDto as NewProposalDto,
+  createProposalDto as NewProposalDto,
   UpdateProposalDto,
 } from '../dtos/proposal.dto';
 import { EncryptionService } from './encryption.service';
@@ -40,8 +40,13 @@ export class ProposalService {
   
   workers: Map<string, Worker> = new Map();
 
+<<<<<<< HEAD
   // TODO - No two proposals should have eqaul title
   async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
+=======
+  // TODO - No two proposals should have equal title
+  async create(data: NewProposalDto): Promise<Proposal> {
+>>>>>>> dev
     data.start_time = new Date(data.start_time);
     data.end_time = new Date(data.end_time);
     if (data.start_time instanceof Date && data.end_time instanceof Date) {
@@ -227,7 +232,7 @@ export class ProposalService {
     return decrypted_votes;
   }
 
-  findAll(): Promise<Proposal[]> {
+  async findAll(): Promise<Proposal[]> {
     try {
       return this.proposalRepository.find();
     } catch (error) {
@@ -263,6 +268,7 @@ export class ProposalService {
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
+<<<<<<< HEAD
 
     const updateResult = await this.proposalRepository.update(options, data);
     console.log('updateResult', updateResult.affected);
@@ -272,6 +278,15 @@ export class ProposalService {
     }
     const updatedProposal = await this.findOne(id);
     return updatedProposal;
+=======
+    
+      const updateResult = await this.proposalRepository.update(options, data);
+      if (updateResult.affected === 0) {
+        throw new NotFoundException(`Proposal with id ${id} not found`);
+      }
+      const updatedProposal = await this.findOne(id);
+      return updatedProposal;  
+>>>>>>> dev
   }
 
   async remove(id: string): Promise<void> {

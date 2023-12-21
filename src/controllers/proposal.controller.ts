@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
 import {
-  createdProposalDto as NewProposalDto,
+  createProposalDto as NewProposalDto,
   UpdateProposalDto,
 } from '../dtos/proposal.dto';
 import { OnEvent } from '@nestjs/event-emitter';
