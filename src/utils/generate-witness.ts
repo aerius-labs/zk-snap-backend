@@ -71,6 +71,9 @@ export async function aggregateVote(
       );
     }
 
+    witness.selfProofStr = JSON.stringify(earlierProof);
+    witness.userProofStr = JSON.stringify(userProof);
+
     return JSON.stringify(witness);
   } catch (error) {
     console.error('Error generating Aggregate vote Witness:', error);
