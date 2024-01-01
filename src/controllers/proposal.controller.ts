@@ -100,7 +100,7 @@ export class ProposalController {
     // TODO - should only register vote when proposal is active
 
     if (!voteProof) {
-      throw new BadRequestException('Vote proof not found');
+      throw new BadRequestException('invalid vote proof sent');
     }
 
     await this.proposalService.vote(id, voteProof);
