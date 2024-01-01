@@ -40,13 +40,8 @@ export class ProposalService {
   
   workers: Map<string, Worker> = new Map();
 
-<<<<<<< HEAD
-  // TODO - No two proposals should have eqaul title
-  async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
-=======
   // TODO - No two proposals should have equal title
-  async create(data: NewProposalDto): Promise<Proposal> {
->>>>>>> dev
+  async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
     data.start_time = new Date(data.start_time);
     data.end_time = new Date(data.end_time);
     if (data.start_time instanceof Date && data.end_time instanceof Date) {
