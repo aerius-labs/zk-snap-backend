@@ -260,8 +260,6 @@ export class ProposalService {
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
-<<<<<<< HEAD
-
     const updateResult = await this.proposalRepository.update(options, data);
     console.log('updateResult', updateResult.affected);
     console.log(updateResult.affected === 0);
@@ -270,15 +268,6 @@ export class ProposalService {
     }
     const updatedProposal = await this.findOne(id);
     return updatedProposal;
-=======
-    
-      const updateResult = await this.proposalRepository.update(options, data);
-      if (updateResult.affected === 0) {
-        throw new NotFoundException(`Proposal with id ${id} not found`);
-      }
-      const updatedProposal = await this.findOne(id);
-      return updatedProposal;  
->>>>>>> dev
   }
 
   async remove(id: string): Promise<void> {
