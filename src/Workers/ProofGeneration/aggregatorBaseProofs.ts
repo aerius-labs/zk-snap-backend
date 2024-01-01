@@ -6,9 +6,9 @@ export async function generateAggregatorBaseProof(
   aggregatorUrl: string,
 ) {
   try {
-    const aggBaseProof = withness.witness;
+    const aggBaseWitness = withness.witness;
 
-    postAggregatorData(aggBaseProof, withness.proposalIdStr, aggregatorUrl);
+    await postAggregatorData(aggBaseWitness, withness.proposalIdStr, aggregatorUrl);
     console.log('Aggregator Base Proof generated successfully');
   } catch (error) {
     console.error('Error generating Aggregator Base Proof:', error);
@@ -16,7 +16,7 @@ export async function generateAggregatorBaseProof(
 }
 
 async function postAggregatorData(
-  aggBaseProof: string,
+  aggBaseWitness: string,
   proposalId: string,
   aggregatorUrl: string,
 ) {
@@ -26,7 +26,7 @@ async function postAggregatorData(
       aggregatorUrl,
       {
         type: 'base',
-        witness: aggBaseProof,
+        witness: aggBaseWitness,
         proposalId: proposalId,
       },
       {
