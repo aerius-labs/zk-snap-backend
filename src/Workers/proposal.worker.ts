@@ -6,13 +6,15 @@ import { RabbitMQService } from '../services/rabbitmq.service';
 
 // Initialize the RabbitMQService
 const rabbitMQService = new RabbitMQService();
-rabbitMQService.onModuleInit().then(() => {
+rabbitMQService
+  .onModuleInit()
+  .then(() => {
     console.log('RabbitMQ Worker: Connected to RabbitMQ');
-}).catch(err => {
+  })
+  .catch((err) => {
     console.error('RabbitMQ Worker: Failed to connect to RabbitMQ', err);
     process.exit(1); // Exit if connection fails
-});
-
+  });
 
 parentPort.on('message', (message) => {
   console.log('message', message);
@@ -25,7 +27,6 @@ parentPort.on('message', (message) => {
     console.log('Proposal updated message from worker');
   }
   if (message.type === 'USER_VOTED') {
-
     const { voteProof, proposalId } = message.data;
     try {
       rabbitMQService.sendToQueue({
@@ -34,9 +35,8 @@ parentPort.on('message', (message) => {
       });
       console.log('vote sent to queue');
     } catch (error) {
-        console.error('Error while sending vote to queue: ', error);
+      console.error('Error while sending vote to queue: ', error);
     }
     console.log('User voted message from worker');
-
   }
 });

@@ -8,7 +8,11 @@ export async function generateAggregatorBaseProof(
   try {
     const aggBaseWitness = withness.witness;
 
-    await postAggregatorData(aggBaseWitness, withness.proposalIdStr, aggregatorUrl);
+    await postAggregatorData(
+      aggBaseWitness,
+      withness.proposalIdStr,
+      aggregatorUrl,
+    );
     console.log('Aggregator Base Proof generated successfully');
   } catch (error) {
     console.error('Error generating Aggregator Base Proof:', error);

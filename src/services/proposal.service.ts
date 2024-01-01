@@ -37,7 +37,7 @@ export class ProposalService {
     private encryptionService: EncryptionService,
     private eventEmitter: EventEmitter2,
   ) {}
-  
+
   workers: Map<string, Worker> = new Map();
 
   // TODO - No two proposals should have equal title
@@ -177,9 +177,8 @@ export class ProposalService {
     worker.postMessage({
       type: 'USER_VOTED',
       data: voteProof,
-    });    
+    });
   }
-
 
   async revealVote(id: string): Promise<string[]> {
     const proposal = await this.findOne(id);
