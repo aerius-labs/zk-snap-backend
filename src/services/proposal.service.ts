@@ -83,9 +83,6 @@ export class ProposalService {
 
       this.scheduleEvent(createdProposal.id, createdProposal.end_time);
 
-      // TODO: remove this once the worker is implemented
-      // this.eventEmitter.emit('proposal.created', createdProposal.id);
-
       this.handleWorker(createdProposal, membersRoot);
 
       console.log('Proposal created');
