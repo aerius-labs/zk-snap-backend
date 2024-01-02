@@ -21,6 +21,13 @@ import { parseBigInt } from '../utils/big-int-string';
 import { PrivateKey, PublicKey } from 'paillier-bigint';
 import { calculateActualResults } from '../utils';
 import { v4 as uuid } from 'uuid';
+import { Worker } from 'worker_threads';
+import { generateAggregatorBaseProofWitness } from 'src/utils/generate-witness';
+import {
+  WithnessToAggregator,
+  WitnessGenerationData,
+} from 'src/dtos/baseProofGeneration.dto';
+const path = require('path');
 
 @Injectable()
 export class ProposalService {
@@ -31,8 +38,10 @@ export class ProposalService {
     private eventEmitter: EventEmitter2,
   ) {}
 
+  workers: Map<string, Worker> = new Map();
+
   // TODO - No two proposals should have equal title
-  async create(data: NewProposalDto): Promise<Proposal> {
+  async create(data: NewProposalDto, membersRoot: string): Promise<Proposal> {
     data.start_time = new Date(data.start_time);
     data.end_time = new Date(data.end_time);
     if (data.start_time instanceof Date && data.end_time instanceof Date) {
@@ -74,11 +83,12 @@ export class ProposalService {
 
       this.scheduleEvent(createdProposal.id, createdProposal.end_time);
 
-      this.eventEmitter.emit('proposal.created', createdProposal.id);
+      this.handleWorker(createdProposal, membersRoot);
 
       console.log('Proposal created');
       return createdProposal;
     } catch (error) {
+      console.log(error);
       throw new BadRequestException('Failed to create proposal');
     }
   }
@@ -87,6 +97,36 @@ export class ProposalService {
     schedule.scheduleJob(proposalId, endTime, () => {
       this.handleEventEnd(proposalId);
     });
+  }
+
+  private async handleWorker(
+    proposal: Proposal,
+    membersRoot: string,
+  ): Promise<void> {
+    try {
+      const workerPath = path.join(__dirname, '../Workers/proposal.worker.js');
+      const worker = new Worker(workerPath, {
+        workerData: {
+          aggregatorURL: process.env.AGGREGATOR_URL,
+        },
+      });
+      this.workers.set(proposal.id, worker);
+      const proposalData = new WitnessGenerationData(
+        proposal.id,
+        membersRoot,
+        proposal.encryption_key_pair.public_key,
+      );
+      const witness = await generateAggregatorBaseProofWitness(proposalData);
+      const witnessData = new WithnessToAggregator(proposal.id, witness);
+      worker.postMessage({
+        type: 'PROPOSAL_CREATED',
+        value: witnessData,
+      });
+      console.log(`Worker created for Proposal ${proposal.id}`);
+    } catch (error) {
+      console.log('worker creation error', error);
+      throw new BadRequestException('Failed to create worker');
+    }
   }
 
   private async handleEventEnd(proposalId: string): Promise<void> {
@@ -111,6 +151,33 @@ export class ProposalService {
     } catch (error) {
       throw new BadRequestException('Failed to update Proposal');
     }
+  }
+
+  async vote(proposalId: string, vote: string): Promise<void> {
+    const proposal = await this.findOne(proposalId);
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+    if (proposal.zk_proof === null) {
+      throw new HttpException(
+        'Zk proof not found for the given proposal',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    // TODO - check if proposal is finished or not
+
+    const voteProof = {
+      proposalId,
+      vote,
+    };
+    const worker = this.workers.get(proposalId);
+    if (!worker) {
+      throw new NotFoundException('Worker not found');
+    }
+    worker.postMessage({
+      type: 'USER_VOTED',
+      data: voteProof,
+    });
   }
 
   async revealVote(id: string): Promise<string[]> {
@@ -192,13 +259,14 @@ export class ProposalService {
     const options: FindOptionsWhere<Proposal> = {
       id,
     };
-    
-      const updateResult = await this.proposalRepository.update(options, data);
-      if (updateResult.affected === 0) {
-        throw new NotFoundException(`Proposal with id ${id} not found`);
-      }
-      const updatedProposal = await this.findOne(id);
-      return updatedProposal;  
+    const updateResult = await this.proposalRepository.update(options, data);
+    console.log('updateResult', updateResult.affected);
+    console.log(updateResult.affected === 0);
+    if (updateResult.affected === 0) {
+      throw new NotFoundException(`Proposal with id ${id} not found`);
+    }
+    const updatedProposal = await this.findOne(id);
+    return updatedProposal;
   }
 
   async remove(id: string): Promise<void> {

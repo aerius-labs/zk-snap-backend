@@ -254,38 +254,38 @@ describe('ProposalService', () => {
 
   describe('update', () => {
     const mockProposal: Proposal = {
-        _id: new ObjectId(),
-        id: '1',
-        creator: 'creatorId',
-        title: 'proposalTitle',
-        description: 'proposalDescription',
-        dao_id: 'daoId',
-        start_time: new Date(Date.now() + 100001),
-        end_time: new Date(Date.now() + 1000000),
-        voting_options: ['yes', 'no'],
-        encryption_key_pair: {
-          public_key: 'publicKey',
-          private_key: 'privateKey',
-        },
-        status: 'NOT_STARTED',
-        result: [],
-        zk_proof: null,
-      };
+      _id: new ObjectId(),
+      id: '1',
+      creator: 'creatorId',
+      title: 'proposalTitle',
+      description: 'proposalDescription',
+      dao_id: 'daoId',
+      start_time: new Date(Date.now() + 100001),
+      end_time: new Date(Date.now() + 1000000),
+      voting_options: ['yes', 'no'],
+      encryption_key_pair: {
+        public_key: 'publicKey',
+        private_key: 'privateKey',
+      },
+      status: 'NOT_STARTED',
+      result: [],
+      zk_proof: null,
+    };
 
-      const updateProposalDto = {
-        creator: 'creatorId',
-        title: 'proposalTitleNew',
-        description: 'proposalDescriptionNew',
-        dao_id: 'daoId',
-        start_time: new Date(Date.now() + 100001),
-        end_time: new Date(Date.now() + 1000000),
-        voting_options: ['yes', 'no'],
-      };
+    const updateProposalDto = {
+      creator: 'creatorId',
+      title: 'proposalTitleNew',
+      description: 'proposalDescriptionNew',
+      dao_id: 'daoId',
+      start_time: new Date(Date.now() + 100001),
+      end_time: new Date(Date.now() + 1000000),
+      voting_options: ['yes', 'no'],
+    };
     it('should update a proposal', async () => {
       const updatedResult = { ...mockProposal, ...updateProposalDto };
       jest
         .spyOn(proposalRepository, 'findOne')
-        .mockResolvedValue(updatedResult as Proposal);   
+        .mockResolvedValue(updatedResult as Proposal);
       jest
         .spyOn(proposalRepository, 'update')
         .mockResolvedValue(updatedResult as any);
@@ -305,15 +305,18 @@ describe('ProposalService', () => {
     });
 
     it('should throw an error if proposal not found', async () => {
-        jest.spyOn(proposalRepository, 'findOne').mockResolvedValue(null);
-        jest.spyOn(proposalRepository, 'update').mockResolvedValue({affected: 0} as any);
+      jest.spyOn(proposalRepository, 'findOne').mockResolvedValue(null);
+      jest
+        .spyOn(proposalRepository, 'update')
+        .mockResolvedValue({ affected: 0 } as any);
 
-        const id = '1';
-        await expect(proposalService.update(id, updateProposalDto)).rejects.toThrow(
-          new NotFoundException(`Proposal with id ${id} not found`),
-        );
+      const id = '1';
+      await expect(
+        proposalService.update(id, updateProposalDto),
+      ).rejects.toThrow(
+        new NotFoundException(`Proposal with id ${id} not found`),
+      );
     });
-
   });
 
   describe('remove', () => {
@@ -338,7 +341,9 @@ describe('ProposalService', () => {
       };
 
       jest.spyOn(proposalRepository, 'findOne').mockResolvedValue(mockProposal);
-      jest.spyOn(proposalRepository, 'delete').mockResolvedValue({ affected: 1 } as any);
+      jest
+        .spyOn(proposalRepository, 'delete')
+        .mockResolvedValue({ affected: 1 } as any);
 
       await proposalService.remove('1');
 
@@ -347,7 +352,9 @@ describe('ProposalService', () => {
 
     it('should throw an error if proposal not found', async () => {
       jest.spyOn(proposalRepository, 'findOne').mockResolvedValue(null);
-      jest.spyOn(proposalRepository, 'delete').mockResolvedValue({ affected: 0 } as any);
+      jest
+        .spyOn(proposalRepository, 'delete')
+        .mockResolvedValue({ affected: 0 } as any);
 
       const id = '1';
       await expect(proposalService.remove(id)).rejects.toThrow(

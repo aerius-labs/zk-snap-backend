@@ -10,7 +10,6 @@ import { join } from 'path';
 
 import { DaoModule } from './modules/dao.module';
 
-
 import { ProposalModule } from './modules/proposal.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
